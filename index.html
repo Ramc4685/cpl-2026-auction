@@ -60,6 +60,55 @@
   .live-lot .meta{color:var(--mute);margin-top:4px}
   .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warn);margin-right:6px}
   .status-dot.ok{background:var(--ok)}
+  .site-credit{max-width:1400px;margin:4px auto 28px;padding:0 18px;color:var(--mute);font-size:12px;text-align:center}
+  @media (max-width:760px){
+    body{font-size:14px}
+    header{padding:12px 14px;align-items:flex-start}
+    header h1{font-size:15px;line-height:1.25;max-width:230px}
+    header .nav{margin-left:auto}
+    header .nav a{margin-left:8px;min-height:44px;display:inline-flex;align-items:center}
+    .wrap{padding:10px}
+    .topbar{align-items:stretch;gap:8px;margin-bottom:10px}
+    .topbar label{width:100%}
+    .topbar select,.topbar input{width:100%;min-height:44px}
+    #stateInfo{display:block;width:100%;line-height:1.35}
+    .panel{padding:12px;margin-bottom:10px;border-radius:8px}
+    .panel h2{font-size:12px;margin-bottom:10px}
+    .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .stat{padding:10px;border-radius:7px;min-width:0}
+    .stat .k{font-size:10px;line-height:1.25}
+    .stat .v{font-size:20px;line-height:1.15;overflow-wrap:anywhere}
+    .stat .sub{font-size:11px;line-height:1.3}
+    .live-lot{padding:14px;border-radius:8px}
+    .live-lot .name{font-size:24px;line-height:1.12;overflow-wrap:anywhere}
+    .live-lot .meta{font-size:13px;line-height:1.35}
+    #teamsTable,#poolTable,#retainedTable,#boughtTable{display:block}
+    #teamsTable thead,#poolTable thead,#retainedTable thead,#boughtTable thead{display:none}
+    #teamsTable tbody,#poolTable tbody,#retainedTable tbody,#boughtTable tbody{display:grid;gap:8px}
+    #teamsTable tr,#poolTable tr,#retainedTable tr,#boughtTable tr{display:block;background:var(--card2);border:1px solid #25324d;border-radius:8px;padding:10px}
+    #teamsTable td,#poolTable td,#retainedTable td,#boughtTable td{display:grid;grid-template-columns:minmax(92px,38%) minmax(0,1fr);gap:10px;align-items:center;border:0;padding:5px 0;text-align:right}
+    #teamsTable td:first-child,#poolTable td:first-child,#retainedTable td:first-child,#boughtTable td:first-child{width:auto;text-align:left;display:block;padding-bottom:8px;border-bottom:1px solid #25324d;margin-bottom:4px}
+    #teamsTable td:first-child::before,#poolTable td:first-child::before,#retainedTable td:first-child::before,#boughtTable td:first-child::before{display:none}
+    #teamsTable td::before,#poolTable td::before,#retainedTable td::before,#boughtTable td::before{content:attr(data-label);color:var(--mute);font-size:10px;text-transform:uppercase;font-weight:700;text-align:left}
+    #teamsTable tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    #teamsTable td{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#121a2e;border-radius:7px;padding:7px 8px;text-align:left;min-height:38px}
+    #teamsTable td:first-child{grid-column:1/-1;background:transparent;border-radius:0;padding:0 0 8px;margin:0}
+    #teamsTable td:not(:first-child)::before{display:inline;margin:0}
+    #teamsTable td.money{text-align:left}
+    #teamsTable .cat-cell{justify-content:flex-start}
+    #teamsTable .money-pill{min-width:0}
+    #teamsTable .cat-meter{width:54px;padding:3px 6px}
+    .cat-cell{justify-content:flex-end}
+    .cat-meter{width:68px;text-align:center}
+    .money-pill{min-width:74px}
+    .scroll{max-height:none;overflow:visible}
+    .site-credit{padding:0 12px 18px;margin-top:2px;line-height:1.35}
+  }
+  @media (max-width:380px){
+    .grid{grid-template-columns:1fr}
+    header h1{max-width:190px}
+    #teamsTable td,#poolTable td,#retainedTable td,#boughtTable td{grid-template-columns:minmax(78px,36%) minmax(0,1fr)}
+  }
 </style>
 </head>
 <body>
@@ -174,6 +223,8 @@
   </div>
 </div>
 
+<footer class="site-credit">Created by RamC Venkatasamy, for CPL 2026, Live auction app</footer>
+
 <script src="config.js"></script>
 <script src="data.js"></script>
 <script>
@@ -272,14 +323,14 @@ function renderOverview() {
     const tr = document.createElement('tr');
     const purseClass = t.purse < 5000 ? 'pill bad' : t.purse < 20000 ? 'pill warn' : 'pill ok';
     tr.innerHTML = `
-      <td><b class="team-name">${t.team}</b></td>
-      <td class="money"><span class="${purseClass} money-pill">${t.purse.toLocaleString()}</span></td>
-      <td class="money">${t.spend.toLocaleString()}</td>
-      <td>${catMeter('gold', t.g, RULES.caps.Gold)}</td>
-      <td>${catMeter('silver', t.s, RULES.caps.Silver)}</td>
-      <td>${catMeter('bronze', t.b, RULES.caps.Bronze)}</td>
-      <td>${t.count}/15</td>
-      <td>${15-t.count}</td>`;
+      <td data-label="Team"><b class="team-name">${t.team}</b></td>
+      <td data-label="Purse" class="money"><span class="${purseClass} money-pill">${t.purse.toLocaleString()}</span></td>
+      <td data-label="Spent" class="money">${t.spend.toLocaleString()}</td>
+      <td data-label="Gold">${catMeter('gold', t.g, RULES.caps.Gold)}</td>
+      <td data-label="Silver">${catMeter('silver', t.s, RULES.caps.Silver)}</td>
+      <td data-label="Bronze">${catMeter('bronze', t.b, RULES.caps.Bronze)}</td>
+      <td data-label="Total">${t.count}/15</td>
+      <td data-label="Slots Left">${15-t.count}</td>`;
     tbody.appendChild(tr);
   }
 
@@ -388,11 +439,11 @@ function renderTeam(team) {
   rb.innerHTML = '';
   for (const p of t.retained.sort((a,b)=>b.points-a.points)) {
     rb.innerHTML += `<tr>
-      <td>${p.player}</td>
-      <td><span class="pill ${(p.category||'').toLowerCase()}">${p.category||''}</span></td>
-      <td class="small">${p.role||''} ${p.spec ? '· '+p.spec : ''}</td>
-      <td class="num">${(p.points||0).toLocaleString()}</td>
-      <td class="small">${p.status}</td>
+      <td data-label="Player">${p.player}</td>
+      <td data-label="Category"><span class="pill ${(p.category||'').toLowerCase()}">${p.category||''}</span></td>
+      <td data-label="Role" class="small">${p.role||''} ${p.spec ? '· '+p.spec : ''}</td>
+      <td data-label="Points" class="num">${(p.points||0).toLocaleString()}</td>
+      <td data-label="Status" class="small">${p.status}</td>
     </tr>`;
   }
 
@@ -404,9 +455,9 @@ function renderTeam(team) {
   } else {
     for (const p of t.bought.sort((a,b)=>b.pts-a.pts)) {
       bb.innerHTML += `<tr>
-        <td>${p.player}</td>
-        <td><span class="pill ${(p.category||'').toLowerCase()}">${p.category||''}</span></td>
-        <td class="num">${(p.pts||0).toLocaleString()}</td>
+        <td data-label="Player">${p.player}</td>
+        <td data-label="Category"><span class="pill ${(p.category||'').toLowerCase()}">${p.category||''}</span></td>
+        <td data-label="Points" class="num">${(p.pts||0).toLocaleString()}</td>
       </tr>`;
     }
   }
@@ -426,13 +477,13 @@ function renderPool() {
                      : status==='unsold' ? `<span class="pill warn">UNSOLD</span>`
                      : `<span class="pill ok">available</span>`;
     tbody.innerHTML += `<tr>
-      <td>${p.player}</td>
-      <td><span class="pill ${p.category.toLowerCase()}">${p.category}</span></td>
-      <td class="small">${p.reg_type||''}</td>
-      <td class="small">${p.prev_team||'—'}</td>
-      <td class="num">${p.prev_points||'—'}</td>
-      <td class="small">${p.role||''} ${p.spec ? '· '+p.spec : ''}</td>
-      <td>${statusHtml}</td>
+      <td data-label="Player">${p.player}</td>
+      <td data-label="Category"><span class="pill ${p.category.toLowerCase()}">${p.category}</span></td>
+      <td data-label="Reg" class="small">${p.reg_type||''}</td>
+      <td data-label="Prev Team" class="small">${p.prev_team||'—'}</td>
+      <td data-label="Prev Pts" class="num">${p.prev_points||'—'}</td>
+      <td data-label="Role" class="small">${p.role||''} ${p.spec ? '· '+p.spec : ''}</td>
+      <td data-label="Status">${statusHtml}</td>
     </tr>`;
   }
 }
