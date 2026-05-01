@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CPL 2026 — Owner Dashboard</title>
+<style>
+  :root{--bg:#0b1220;--card:#121a2e;--card2:#1a2440;--ink:#e6edf6;--mute:#8aa0c2;--accent:#fbbf24;--ok:#10b981;--bad:#ef4444;--warn:#f59e0b;--blue:#3b82f6}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{background:#070d1a;border-bottom:1px solid #25324d;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  header h1{margin:0;font-size:16px;font-weight:600}
+  header .nav a{color:var(--accent);text-decoration:none;margin-left:14px;font-size:13px}
+  .wrap{max-width:1400px;margin:0 auto;padding:18px}
+  .topbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
+  select,input[type=file],button{font:inherit;color:var(--ink);background:var(--card2);border:1px solid #344163;border-radius:6px;padding:8px 10px}
+  button{cursor:pointer;background:var(--blue);border-color:var(--blue);font-weight:600}
+  .panel{background:var(--card);border:1px solid #25324d;border-radius:10px;padding:16px;margin-bottom:14px}
+  .panel h2{margin:0 0 12px;font-size:13px;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+  .stat{background:var(--card2);border-radius:8px;padding:12px 14px}
+  .stat .k{font-size:11px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+  .stat .v{font-size:22px;font-weight:700;margin-top:4px}
+  .stat .sub{font-size:12px;color:var(--mute);margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;padding:8px 10px;color:var(--mute);font-weight:600;font-size:11px;text-transform:uppercase;border-bottom:1px solid #25324d}
+  td{padding:8px 10px;border-bottom:1px solid #1d2840}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;background:#25324d}
+  .pill.gold{background:#7c5800;color:#fde68a}
+  .pill.silver{background:#475569;color:#e2e8f0}
+  .pill.bronze{background:#78350f;color:#fed7aa}
+  .pill.unknown{background:#7f1d1d;color:#fecaca}
+  .pill.ok{background:#064e3b;color:#a7f3d0}
+  .pill.warn{background:#78350f;color:#fcd34d}
+  .pill.sold{background:#1e3a8a;color:#bfdbfe}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:900px){.grid2{grid-template-columns:1fr}}
+  .bar{height:6px;background:#1d2840;border-radius:3px;overflow:hidden;margin-top:6px}
+  .bar > div{height:100%;background:var(--blue);border-radius:3px}
+  .bar.gold > div{background:#fbbf24} .bar.silver > div{background:#cbd5e1} .bar.bronze > div{background:#f97316}
+  .small{font-size:12px;color:var(--mute)}
+  .scroll{max-height:600px;overflow:auto}
+  .ro{font-size:11px;color:var(--mute);padding:4px 8px;background:var(--card2);border-radius:4px}
+  .live-lot{background:linear-gradient(135deg,#1a2440,#243056);border:1px solid #344163;border-radius:10px;padding:18px}
+  .live-lot .name{font-size:30px;font-weight:800}
+  .live-lot .meta{color:var(--mute);margin-top:4px}
+  .status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warn);margin-right:6px}
+  .status-dot.ok{background:var(--ok)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏏 CPL 2026 — Owner Dashboard</h1>
+  <div class="nav">
+    <a href="rules.html">Rules</a>
+    <a href="admin.html">Admin Console</a>
+    <span class="ro">Read-only</span>
+  </div>
+</header>
+<div class="wrap">
+  <div class="topbar">
+    <label class="small">Team:</label>
+    <select id="teamSel">
+      <option value="">— All teams overview —</option>
+    </select>
+    <button id="loadStateBtn">Load auction state JSON</button>
+    <input type="file" id="stateFile" accept=".json" style="display:none">
+    <span class="small" id="stateInfo"></span>
+  </div>
+
+  <div class="panel">
+    <h2>Live Now</h2>
+    <div class="live-lot">
+      <div class="small" id="onlineStatus"><span class="status-dot"></span>Local snapshot</div>
+      <div class="name" id="liveLotName">Waiting for auction to start</div>
+      <div class="meta" id="liveLotMeta">This board updates automatically when online sync is configured.</div>
+      <div class="grid" id="liveLotStats" style="margin-top:14px"></div>
+    </div>
+  </div>
+
+  <!-- ALL TEAMS OVERVIEW -->
+  <div id="overview">
+    <div class="panel">
+      <h2>League Overview</h2>
+      <div class="grid" id="overviewStats"></div>
+    </div>
+    <div class="panel">
+      <h2>Teams Standing</h2>
+      <div class="scroll">
+        <table id="teamsTable"><thead>
+          <tr><th>Team</th><th class="num">Purse</th><th class="num">Spent</th><th class="num">G</th><th class="num">S</th><th class="num">B</th><th class="num">Total</th><th class="num">Slots Left</th></tr>
+        </thead><tbody></tbody></table>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Pool Status</h2>
+      <div class="grid" id="poolStats"></div>
+    </div>
+  </div>
+
+  <!-- SINGLE TEAM VIEW -->
+  <div id="teamView" style="display:none">
+    <div class="panel">
+      <h2 id="teamName"></h2>
+      <div class="grid">
+        <div class="stat"><div class="k">Purse Remaining</div><div class="v" id="t_purse"></div><div class="sub" id="t_spent"></div></div>
+        <div class="stat"><div class="k">Roster</div><div class="v" id="t_roster"></div><div class="sub">of 15 max · min 11</div></div>
+        <div class="stat"><div class="k">Must Buy (min)</div><div class="v" id="t_mustbuy"></div><div class="sub">to reach 11 players</div></div>
+        <div class="stat"><div class="k">Max Bid Right Now</div><div class="v" id="t_maxbid"></div><div class="sub">after reserve</div></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h2>Category Breakdown</h2>
+        <div id="catBreakdown"></div>
+      </div>
+      <div class="panel">
+        <h2>Watchlist Math</h2>
+        <table>
+          <tr><th>Need</th><th class="num">Slots</th><th class="num">Min cost (floors)</th></tr>
+          <tbody id="watchMath"></tbody>
+        </table>
+        <div class="small" style="margin-top:10px" id="watchNote"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Roster — Retained</h2>
+      <div class="scroll">
+        <table id="retainedTable"><thead>
+          <tr><th>Player</th><th>Cat</th><th>Role</th><th class="num">Pts</th><th>Status</th></tr>
+        </thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Bought at Auction</h2>
+      <div class="scroll" id="boughtWrap">
+        <table id="boughtTable"><thead>
+          <tr><th>Player</th><th>Cat</th><th class="num">Pts</th></tr>
+        </thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:18px">
+    <h2>Available Players in Pool</h2>
+    <div class="topbar" style="margin-bottom:10px">
+      <select id="poolCatFilter">
+        <option value="">All categories</option>
+        <option>Gold</option><option>Silver</option><option>Bronze</option><option>Unknown</option>
+      </select>
+      <input type="text" id="poolSearch" placeholder="Search..." style="background:var(--card2);border:1px solid #344163;border-radius:6px;padding:8px 10px;color:var(--ink)">
+    </div>
+    <div class="scroll">
+      <table id="poolTable"><thead>
+        <tr><th>Player</th><th>Cat</th><th>Reg</th><th>Prev Team</th><th class="num">Prev Pts</th><th>Role</th><th>Status</th></tr>
+      </thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script>
+const RULES = {
+  caps: {Gold:3, Silver:5, Bronze:7},
+  roster: {min:11, max:15},
+  floors: {Gold:20000, Silver:7000, Bronze:4000},
+  totalPurse: 140000,
+};
+
+let auctionState = {sold:{}, unsold:{}, log:[], audit:[], currentLot:null, revision:0, updatedAt:null};
+const D = window.CPL_DATA;
+const POOL_BY_NAME = Object.fromEntries(D.pool.map(p => [p.player, p]));
+const $ = id => document.getElementById(id);
+
+// Try to auto-load state from localStorage (same-origin sharing with admin.html)
+try {
+  const raw = localStorage.getItem('cpl2026_state_v1');
+  if (raw) auctionState = normalizeState(JSON.parse(raw));
+} catch(e){}
+
+function normalizeState(input) {
+  const s = Object.assign({sold:{}, unsold:{}, log:[], audit:[], currentLot:null, revision:0, updatedAt:null}, input || {});
+  s.sold = s.sold || {};
+  s.unsold = s.unsold || {};
+  s.log = Array.isArray(s.log) ? s.log : [];
+  s.audit = Array.isArray(s.audit) ? s.audit : [];
+  rebuildOutcomesFromLog(s);
+  return s;
+}
+
+function rebuildOutcomesFromLog(target=auctionState) {
+  target.sold = {};
+  target.unsold = {};
+  for (const e of target.log || []) {
+    if (!e || e.action === 'void') continue;
+    if (e.action === 'sold') {
+      target.sold[e.player] = {team:e.team, pts:Number(e.pts || 0), ts:e.ts || Date.now(), lot:e.n};
+      delete target.unsold[e.player];
+    } else if (e.action === 'unsold') {
+      target.unsold[e.player] = e.ts || Date.now();
+      delete target.sold[e.player];
+    }
+  }
+}
+
+function teamStats(team) {
+  let g=0,s=0,b=0,count=0,spend=0;
+  const retained = D.retained.filter(p => p.team===team && p.status==='Retained Registered');
+  for (const p of retained) {
+    count++; spend += Number(p.points||0);
+    if(p.category==='Gold') g++; else if(p.category==='Silver') s++; else if(p.category==='Bronze') b++;
+  }
+  const bought = [];
+  for (const [pname, sale] of Object.entries(auctionState.sold)) {
+    if (sale.team !== team) continue;
+    bought.push({player:pname, ...sale, category: (POOL_BY_NAME[pname]||{}).category});
+    count++; spend += Number(sale.pts||0);
+    const cat = (POOL_BY_NAME[pname]||{}).category;
+    if(cat==='Gold') g++; else if(cat==='Silver') s++; else if(cat==='Bronze') b++;
+  }
+  const purse = RULES.totalPurse - spend;
+  const mustBuy = Math.max(0, RULES.roster.min - count);
+  // max bid: purse minus reserve for remaining must-buy slots
+  const otherSlots = Math.max(0, mustBuy - 1);
+  const reserve = otherSlots * RULES.floors.Bronze;
+  const maxBid = Math.max(0, purse - reserve);
+  return {team, g, s, b, count, spend, purse, retained, bought, mustBuy, maxBid};
+}
+
+function poolStatus(player){
+  if (auctionState.sold[player]) return 'sold';
+  if (auctionState.unsold[player]) return 'unsold';
+  return 'available';
+}
+
+function renderOverview() {
+  const totals = D.teams.map(teamStats);
+  const totalSpend = totals.reduce((a,t) => a+t.spend, 0);
+  const totalRoster = totals.reduce((a,t) => a+t.count, 0);
+  const sold = Object.keys(auctionState.sold).length;
+  const unsold = Object.keys(auctionState.unsold).length;
+  const avail = D.pool.length - sold - unsold;
+
+  $('overviewStats').innerHTML = `
+    <div class="stat"><div class="k">Teams</div><div class="v">${D.teams.length}</div></div>
+    <div class="stat"><div class="k">Players Rostered</div><div class="v">${totalRoster}</div><div class="sub">retained + bought</div></div>
+    <div class="stat"><div class="k">Pool Available</div><div class="v">${avail}</div><div class="sub">of ${D.pool.length}</div></div>
+    <div class="stat"><div class="k">Sold</div><div class="v">${sold}</div></div>
+    <div class="stat"><div class="k">Unsold</div><div class="v">${unsold}</div></div>
+    <div class="stat"><div class="k">Total Spend (Auction)</div><div class="v">${Object.values(auctionState.sold).reduce((a,s)=>a+Number(s.pts||0),0).toLocaleString()}</div></div>`;
+
+  const tbody = $('teamsTable').querySelector('tbody');
+  tbody.innerHTML = '';
+  for (const t of totals) {
+    const tr = document.createElement('tr');
+    const purseClass = t.purse < 5000 ? 'pill bad' : t.purse < 20000 ? 'pill warn' : 'pill ok';
+    tr.innerHTML = `
+      <td><b>${t.team}</b></td>
+      <td class="num"><span class="${purseClass}">${t.purse.toLocaleString()}</span></td>
+      <td class="num">${t.spend.toLocaleString()}</td>
+      <td class="num">${t.g}/${RULES.caps.Gold}</td>
+      <td class="num">${t.s}/${RULES.caps.Silver}</td>
+      <td class="num">${t.b}/${RULES.caps.Bronze}</td>
+      <td class="num">${t.count}/15</td>
+      <td class="num">${15-t.count}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  // Pool stats
+  const cats = {Gold:0, Silver:0, Bronze:0, Unknown:0};
+  const sCats = {Gold:0, Silver:0, Bronze:0, Unknown:0};
+  for (const p of D.pool) {
+    cats[p.category]++;
+    if (auctionState.sold[p.player]) sCats[p.category]++;
+  }
+  $('poolStats').innerHTML = ['Gold','Silver','Bronze','Unknown'].map(c => {
+    const total = cats[c], soldN = sCats[c], avail = total - soldN - Object.keys(auctionState.unsold).filter(p => POOL_BY_NAME[p].category===c).length;
+    const pct = total ? Math.round((soldN/total)*100) : 0;
+    return `<div class="stat">
+      <div class="k"><span class="pill ${c.toLowerCase()}">${c}</span></div>
+      <div class="v">${avail}/${total}</div>
+      <div class="sub">${soldN} sold · ${pct}%</div>
+      <div class="bar ${c.toLowerCase()}"><div style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderLiveLot() {
+  const player = auctionState.currentLot;
+  const latest = (auctionState.log || []).filter(e => e.action !== 'void').slice(-1)[0];
+  const online = !!((window.CPL_CONFIG || {}).APPS_SCRIPT_URL || '').trim();
+  $('onlineStatus').innerHTML = `<span class="status-dot ${online ? 'ok' : ''}"></span>${online ? 'Live online' : 'Local snapshot'}${auctionState.updatedAt ? ' · updated ' + new Date(auctionState.updatedAt).toLocaleTimeString() : ''}`;
+
+  if (player && POOL_BY_NAME[player]) {
+    const p = POOL_BY_NAME[player];
+    const floor = RULES.floors[p.category] || 0;
+    $('liveLotName').innerHTML = `${p.player} <span class="pill ${p.category.toLowerCase()}">${p.category}</span>`;
+    $('liveLotMeta').textContent = [p.role, p.spec].filter(Boolean).join(' · ') || 'Current lot is open';
+    $('liveLotStats').innerHTML = `
+      <div class="stat"><div class="k">Floor</div><div class="v">${floor.toLocaleString()}</div></div>
+      <div class="stat"><div class="k">Previous Team</div><div class="v" style="font-size:18px">${p.prev_team || '—'}</div></div>
+      <div class="stat"><div class="k">Previous Points</div><div class="v">${p.prev_points || '—'}</div></div>
+      <div class="stat"><div class="k">Lot</div><div class="v">#${(auctionState.log || []).length + 1}</div></div>`;
+    return;
+  }
+
+  if (latest) {
+    $('liveLotName').textContent = latest.action === 'sold'
+      ? `${latest.player} sold`
+      : `${latest.player} unsold`;
+    $('liveLotMeta').textContent = latest.action === 'sold'
+      ? `${latest.team} at ${Number(latest.pts || 0).toLocaleString()}`
+      : 'Waiting for next lot';
+    $('liveLotStats').innerHTML = `
+      <div class="stat"><div class="k">Sold</div><div class="v">${Object.keys(auctionState.sold).length}</div></div>
+      <div class="stat"><div class="k">Unsold</div><div class="v">${Object.keys(auctionState.unsold).length}</div></div>
+      <div class="stat"><div class="k">Available</div><div class="v">${D.pool.length - Object.keys(auctionState.sold).length - Object.keys(auctionState.unsold).length}</div></div>
+      <div class="stat"><div class="k">Revision</div><div class="v">${auctionState.revision || 0}</div></div>`;
+    return;
+  }
+
+  $('liveLotName').textContent = 'Waiting for auction to start';
+  $('liveLotMeta').textContent = 'No current lot yet.';
+  $('liveLotStats').innerHTML = `
+    <div class="stat"><div class="k">Pool</div><div class="v">${D.pool.length}</div></div>
+    <div class="stat"><div class="k">Teams</div><div class="v">${D.teams.length}</div></div>
+    <div class="stat"><div class="k">Roster Min</div><div class="v">${RULES.roster.min}</div></div>
+    <div class="stat"><div class="k">Roster Max</div><div class="v">${RULES.roster.max}</div></div>`;
+}
+
+function renderTeam(team) {
+  const t = teamStats(team);
+  $('teamName').textContent = team;
+  $('t_purse').textContent = t.purse.toLocaleString();
+  $('t_spent').textContent = `Spent: ${t.spend.toLocaleString()} of ${RULES.totalPurse.toLocaleString()}`;
+  $('t_roster').textContent = `${t.count}`;
+  $('t_mustbuy').textContent = t.mustBuy;
+  $('t_maxbid').textContent = t.maxBid.toLocaleString();
+
+  // category breakdown bars
+  $('catBreakdown').innerHTML = ['Gold','Silver','Bronze'].map(c => {
+    const used = c==='Gold'?t.g : c==='Silver'?t.s : t.b;
+    const cap = RULES.caps[c];
+    const pct = Math.round((used/cap)*100);
+    return `<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between"><span class="pill ${c.toLowerCase()}">${c}</span><span><b>${used}</b> / ${cap} <span class="small">(${cap-used} left)</span></span></div>
+      <div class="bar ${c.toLowerCase()}"><div style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  // watchlist math
+  const slotsLeft = RULES.roster.max - t.count;
+  const minSlots = t.mustBuy;
+  const minCost = (RULES.caps.Gold-t.g)*0 + minSlots*RULES.floors.Bronze;
+  const maxCost = t.purse;
+  $('watchMath').innerHTML = `
+    <tr><td>Min slots to play</td><td class="num">${minSlots}</td><td class="num">${(minSlots*RULES.floors.Bronze).toLocaleString()}</td></tr>
+    <tr><td>Up to roster max</td><td class="num">${slotsLeft}</td><td class="num">${(slotsLeft*RULES.floors.Bronze).toLocaleString()}</td></tr>
+    <tr><td>Avg per remaining slot</td><td class="num">${slotsLeft || '—'}</td><td class="num">${slotsLeft ? Math.floor(t.purse/slotsLeft).toLocaleString() : '—'}</td></tr>`;
+  $('watchNote').textContent = t.mustBuy === 0
+    ? `Already at min roster. Buying is optional up to ${slotsLeft} more slots.`
+    : `Must buy at least ${t.mustBuy} more player(s) to reach minimum roster of 11.`;
+
+  // retained roster
+  const rb = $('retainedTable').querySelector('tbody');
+  rb.innerHTML = '';
+  for (const p of t.retained.sort((a,b)=>b.points-a.points)) {
+    rb.innerHTML += `<tr>
+      <td>${p.player}</td>
+      <td><span class="pill ${(p.category||'').toLowerCase()}">${p.category||''}</span></td>
+      <td class="small">${p.role||''} ${p.spec ? '· '+p.spec : ''}</td>
+      <td class="num">${(p.points||0).toLocaleString()}</td>
+      <td class="small">${p.status}</td>
+    </tr>`;
+  }
+
+  // bought
+  const bb = $('boughtTable').querySelector('tbody');
+  bb.innerHTML = '';
+  if (t.bought.length === 0) {
+    bb.innerHTML = `<tr><td colspan="3" class="small">No purchases yet.</td></tr>`;
+  } else {
+    for (const p of t.bought.sort((a,b)=>b.pts-a.pts)) {
+      bb.innerHTML += `<tr>
+        <td>${p.player}</td>
+        <td><span class="pill ${(p.category||'').toLowerCase()}">${p.category||''}</span></td>
+        <td class="num">${(p.pts||0).toLocaleString()}</td>
+      </tr>`;
+    }
+  }
+}
+
+function renderPool() {
+  const cat = $('poolCatFilter').value;
+  const q = $('poolSearch').value.toLowerCase();
+  const tbody = $('poolTable').querySelector('tbody');
+  tbody.innerHTML = '';
+  for (const p of D.pool) {
+    if (cat && p.category !== cat) continue;
+    if (q && !p.player.toLowerCase().includes(q)) continue;
+    const status = poolStatus(p.player);
+    const sale = auctionState.sold[p.player];
+    const statusHtml = status==='sold' ? `<span class="pill sold">${sale.team.split(' ')[0]} @ ${sale.pts}</span>`
+                     : status==='unsold' ? `<span class="pill warn">UNSOLD</span>`
+                     : `<span class="pill ok">available</span>`;
+    tbody.innerHTML += `<tr>
+      <td>${p.player}</td>
+      <td><span class="pill ${p.category.toLowerCase()}">${p.category}</span></td>
+      <td class="small">${p.reg_type||''}</td>
+      <td class="small">${p.prev_team||'—'}</td>
+      <td class="num">${p.prev_points||'—'}</td>
+      <td class="small">${p.role||''} ${p.spec ? '· '+p.spec : ''}</td>
+      <td>${statusHtml}</td>
+    </tr>`;
+  }
+}
+
+function renderAll() {
+  renderLiveLot();
+  const team = $('teamSel').value;
+  if (team) {
+    $('overview').style.display = 'none';
+    $('teamView').style.display = '';
+    renderTeam(team);
+  } else {
+    $('overview').style.display = '';
+    $('teamView').style.display = 'none';
+    renderOverview();
+  }
+  renderPool();
+  $('stateInfo').textContent = (Object.keys(auctionState.sold).length || Object.keys(auctionState.unsold).length || auctionState.currentLot || auctionState.revision)
+    ? `Auction state loaded · ${Object.keys(auctionState.sold).length} sold · ${Object.keys(auctionState.unsold).length} unsold · rev ${auctionState.revision || 0}`
+    : 'No auction state loaded yet (showing pre-auction snapshot).';
+}
+
+function onlineUrl() {
+  return ((window.CPL_CONFIG || {}).APPS_SCRIPT_URL || '').trim();
+}
+
+function jsonp(url, params={}, timeoutMs=10000) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cplPublicJsonp_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('Timed out'));
+    }, timeoutMs);
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cb];
+      script.remove();
+    }
+    window[cb] = data => {
+      cleanup();
+      resolve(data);
+    };
+    const u = new URL(url);
+    u.searchParams.set('callback', cb);
+    u.searchParams.set('_', Date.now());
+    for (const [k,v] of Object.entries(params)) u.searchParams.set(k, v);
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('Could not load online state'));
+    };
+    script.src = u.toString();
+    document.body.appendChild(script);
+  });
+}
+
+async function loadOnlineState() {
+  const url = onlineUrl();
+  if (!url) return;
+  try {
+    const data = await jsonp(url, {action:'state'});
+    if (!data.ok || !data.state) throw new Error(data.error || 'Invalid online state');
+    const next = normalizeState(data.state);
+    if (Number(next.revision || 0) >= Number(auctionState.revision || 0)) {
+      auctionState = next;
+      localStorage.setItem('cpl2026_state_v1', JSON.stringify(auctionState));
+      renderAll();
+    }
+  } catch (err) {
+    $('onlineStatus').innerHTML = `<span class="status-dot"></span>Online refresh failed · showing last snapshot`;
+  }
+}
+
+// init team dropdown
+const tsel = $('teamSel');
+for (const t of D.teams.slice().sort()) { const o=document.createElement('option'); o.value=t; o.textContent=t; tsel.appendChild(o); }
+
+$('teamSel').addEventListener('change', renderAll);
+$('poolCatFilter').addEventListener('input', renderPool);
+$('poolSearch').addEventListener('input', renderPool);
+$('loadStateBtn').addEventListener('click', () => $('stateFile').click());
+$('stateFile').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      const obj = JSON.parse(ev.target.result);
+      if (obj.state) auctionState = normalizeState(obj.state);
+      else auctionState = normalizeState(obj);
+      renderAll();
+    } catch(err) { alert('Parse error: '+err.message); }
+  };
+  r.readAsText(f);
+});
+
+renderAll();
+loadOnlineState();
+if (onlineUrl()) setInterval(loadOnlineState, 3000);
+</script>
+</body>
+</html>

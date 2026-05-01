@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CPL 2026 — Auction Rules</title>
+<style>
+  :root{--bg:#0b1220;--card:#121a2e;--ink:#e6edf6;--mute:#8aa0c2;--accent:#fbbf24;--ok:#10b981;--bad:#ef4444}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 20px 80px}
+  h1{margin:0 0 4px;font-size:28px}
+  h2{margin:32px 0 8px;font-size:18px;color:var(--accent);border-bottom:1px solid #25324d;padding-bottom:6px}
+  .sub{color:var(--mute);margin-bottom:24px}
+  .card{background:var(--card);border:1px solid #25324d;border-radius:10px;padding:16px 20px;margin:12px 0}
+  table{width:100%;border-collapse:collapse;margin:8px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid #25324d;font-size:14px}
+  th{color:var(--mute);font-weight:600;text-transform:uppercase;font-size:12px;letter-spacing:.04em}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  ol li{margin:6px 0}
+  .pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;background:#25324d;color:var(--ink)}
+  .pill.gold{background:#7c5800;color:#fde68a}
+  .pill.silver{background:#475569;color:#e2e8f0}
+  .pill.bronze{background:#78350f;color:#fed7aa}
+  .ok{color:var(--ok)} .bad{color:var(--bad)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+  .nav{margin-bottom:18px;font-size:14px}
+  .nav a{color:var(--accent);text-decoration:none;margin-right:14px}
+  @media print{body{background:#fff;color:#111} .card{background:#fff;border:1px solid #ccc} .nav{display:none} h2{color:#111;border-color:#ccc} th{color:#555} .pill.gold{background:#fef3c7;color:#78350f} .pill.silver{background:#e5e7eb;color:#111} .pill.bronze{background:#fed7aa;color:#7c2d12}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav"><a href="index.html">Owner Dashboard</a><a href="admin.html">Live Console</a><a href="javascript:window.print()">Print</a></div>
+  <h1>CPL 2026 — Auction Rules</h1>
+  <div class="sub">Final rules. One page. No exceptions on auction day.</div>
+
+  <h2>1. Team purse &amp; roster caps</h2>
+  <div class="card">
+    <table>
+      <tr><th>Item</th><th class="num">Value</th></tr>
+      <tr><td>Base team points</td><td class="num">120,000</td></tr>
+      <tr><td>Auction extra points</td><td class="num">20,000</td></tr>
+      <tr><td><b>Total team purse</b></td><td class="num"><b>140,000</b></td></tr>
+      <tr><td>Min roster size (must reach)</td><td class="num">11</td></tr>
+      <tr><td>Max roster size</td><td class="num">15</td></tr>
+      <tr><td>Max <span class="pill gold">Gold</span> per team</td><td class="num">3</td></tr>
+      <tr><td>Max <span class="pill silver">Silver</span> per team</td><td class="num">5</td></tr>
+      <tr><td>Max <span class="pill bronze">Bronze</span> per team</td><td class="num">7</td></tr>
+    </table>
+  </div>
+
+  <h2>2. Bid floors (opening bid by category)</h2>
+  <div class="card">
+    <table>
+      <tr><th>Category</th><th class="num">Floor</th></tr>
+      <tr><td><span class="pill gold">Gold</span></td><td class="num">20,000</td></tr>
+      <tr><td><span class="pill silver">Silver</span></td><td class="num">7,000</td></tr>
+      <tr><td><span class="pill bronze">Bronze</span></td><td class="num">4,000</td></tr>
+    </table>
+    <div class="sub" style="margin:8px 0 0">No bid below floor. If no bid at floor, player is unsold (see §6).</div>
+  </div>
+
+  <h2>3. Bid increment ladder</h2>
+  <div class="card">
+    <table>
+      <tr><th>Current bid range</th><th class="num">Min increment</th></tr>
+      <tr><td>Up to 10,000</td><td class="num">+500</td></tr>
+      <tr><td>10,001 – 25,000</td><td class="num">+1,000</td></tr>
+      <tr><td>25,001 – 50,000</td><td class="num">+2,500</td></tr>
+      <tr><td>Above 50,000</td><td class="num">+5,000</td></tr>
+    </table>
+    <div class="sub" style="margin:8px 0 0">Owners may jump-bid above the minimum. No fractional bids.</div>
+  </div>
+
+  <h2>4. Bid eligibility (every bid must satisfy ALL)</h2>
+  <div class="card">
+    <ol>
+      <li>Team has remaining purse ≥ current bid.</li>
+      <li>Team has reserved enough purse to fill min-roster at floor for remaining slots.</li>
+      <li>Team is not at category cap (no 4th Gold, 6th Silver, 8th Bronze).</li>
+      <li>Team is not at roster max (15).</li>
+    </ol>
+    <div class="sub" style="margin:8px 0 0">Console enforces this automatically. Owner is responsible for verifying before raising hand.</div>
+  </div>
+
+  <h2>5. Auction procedure (per lot)</h2>
+  <div class="card">
+    <ol>
+      <li>Admin announces lot: name, category, prior team, prior price (if any).</li>
+      <li>Bidding opens at floor. Owner raises hand or unmutes to bid.</li>
+      <li>Admin acknowledges each bid by team name + amount.</li>
+      <li>"Going once, going twice, sold to [team] at [points]." Three-second pause between calls.</li>
+      <li>Admin enters winner + price in console. Commit.</li>
+      <li>Next lot.</li>
+    </ol>
+  </div>
+
+  <h2>6. Unsold players</h2>
+  <div class="card">
+    <ol>
+      <li>If no bid at floor, player goes to <b>Unsold Pool</b>.</li>
+      <li>After main round ends, Unsold Pool is re-auctioned at floor in same order.</li>
+      <li>If still unsold in round 2, player is <b>released</b> (cannot play CPL 2026).</li>
+    </ol>
+  </div>
+
+  <h2>7. Right to Match (RTM)</h2>
+  <div class="card">
+    <b class="bad">RTM is OFF.</b> Highest bidder wins outright. Previous team has no preferential right.
+  </div>
+
+  <h2>8. Tie-break</h2>
+  <div class="card">
+    Verbal auction has no ties (only one bidder can be highest). If admin is unclear which team bid first at the same level, admin's call is final.
+  </div>
+
+  <h2>9. Mistakes &amp; undo</h2>
+  <div class="card">
+    <ol>
+      <li>Admin may undo <b>only the most recent lot</b>, before the next lot opens.</li>
+      <li>To undo: admin clicks Undo in console, both teams (selling and prior) must verbally agree.</li>
+      <li>Once next lot opens, prior lots are final.</li>
+    </ol>
+  </div>
+
+  <h2>10. Disputes</h2>
+  <div class="card">
+    Admin's decision is final on auction day. Post-auction disputes go to owner committee within 24 hours; otherwise result stands.
+  </div>
+
+  <h2>11. Roles &amp; conduct</h2>
+  <div class="card">
+    <ol>
+      <li>One designated bidder per team. Substitution requires admin approval.</li>
+      <li>No collusion. No private side-deals on points.</li>
+      <li>Mute when not bidding. Disrupting auction = warning, then forfeit current lot.</li>
+    </ol>
+  </div>
+
+  <h2>12. Special status players</h2>
+  <div class="card">
+    <ul>
+      <li><b>Retained Not Registered</b> (Palani Selvam, Venkata Kommireddi): excluded from spend &amp; purse calcs. Counted on roster only if they register before season start.</li>
+      <li><b>Vivek Ganganagari</b>: retained by TECHIE BRAINS. Removed from auction pool.</li>
+      <li><b>Abhishek Budala</b>: category updated to Silver.</li>
+    </ul>
+  </div>
+
+  <h2>13. Pool snapshot</h2>
+  <div class="card">
+    <table>
+      <tr><th>Category</th><th class="num">Pool</th><th class="num">Max demand</th><th class="num">Gap</th></tr>
+      <tr><td><span class="pill gold">Gold</span></td><td class="num">4</td><td class="num">4</td><td class="num ok">0</td></tr>
+      <tr><td><span class="pill silver">Silver</span></td><td class="num">15</td><td class="num">15</td><td class="num ok">0</td></tr>
+      <tr><td><span class="pill bronze">Bronze</span></td><td class="num">25</td><td class="num">25</td><td class="num ok">0</td></tr>
+      <tr><td><b>Total</b></td><td class="num"><b>44</b></td><td class="num"><b>44</b></td><td class="num ok"><b>0</b></td></tr>
+    </table>
+    <div class="sub" style="margin:8px 0 0">Pool exactly matches max demand across all categories. Every player has a slot somewhere in the league.</div>
+  </div>
+
+  <div style="margin-top:40px;color:var(--mute);font-size:13px;text-align:center">CPL 2026 · Auction Rules v1.0 · Generated 2026-05-01</div>
+</div>
+</body>
+</html>
