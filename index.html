@@ -26,6 +26,19 @@
   th{text-align:left;padding:8px 10px;color:var(--mute);font-weight:600;font-size:11px;text-transform:uppercase;border-bottom:1px solid #25324d}
   td{padding:8px 10px;border-bottom:1px solid #1d2840}
   td.num{text-align:right;font-variant-numeric:tabular-nums}
+  #teamsTable{table-layout:fixed}
+  #teamsTable th,#teamsTable td{vertical-align:middle}
+  #teamsTable th:first-child,#teamsTable td:first-child{width:34%;text-align:left}
+  #teamsTable th:not(:first-child),#teamsTable td:not(:first-child){text-align:center}
+  #teamsTable th.money,#teamsTable td.money{text-align:right}
+  #teamsTable .team-name{font-size:14px;line-height:1.25;letter-spacing:0}
+  .cat-cell{display:flex;justify-content:center}
+  .cat-meter{width:74px;border-radius:8px;padding:5px 7px;border:1px solid transparent;font-weight:800;font-variant-numeric:tabular-nums}
+  .cat-meter.gold{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.42);color:#fde68a}
+  .cat-meter.silver{background:rgba(203,213,225,.14);border-color:rgba(203,213,225,.34);color:#e2e8f0}
+  .cat-meter.bronze{background:rgba(249,115,22,.14);border-color:rgba(249,115,22,.36);color:#fed7aa}
+  .cat-meter.full{box-shadow:inset 0 -3px 0 rgba(255,255,255,.16)}
+  .money-pill{display:inline-flex;min-width:76px;justify-content:center;padding:4px 10px;border-radius:999px;font-weight:800}
   .pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;background:#25324d}
   .pill.gold{background:#7c5800;color:#fde68a}
   .pill.silver{background:#475569;color:#e2e8f0}
@@ -88,7 +101,7 @@
       <h2>Teams Standing</h2>
       <div class="scroll">
         <table id="teamsTable"><thead>
-          <tr><th>Team</th><th class="num">Purse</th><th class="num">Spent</th><th class="num">G</th><th class="num">S</th><th class="num">B</th><th class="num">Total</th><th class="num">Slots Left</th></tr>
+          <tr><th>Team</th><th class="money">Purse</th><th class="money">Spent</th><th>Gold</th><th>Silver</th><th>Bronze</th><th>Total</th><th>Slots Left</th></tr>
         </thead><tbody></tbody></table>
       </div>
     </div>
@@ -259,14 +272,14 @@ function renderOverview() {
     const tr = document.createElement('tr');
     const purseClass = t.purse < 5000 ? 'pill bad' : t.purse < 20000 ? 'pill warn' : 'pill ok';
     tr.innerHTML = `
-      <td><b>${t.team}</b></td>
-      <td class="num"><span class="${purseClass}">${t.purse.toLocaleString()}</span></td>
-      <td class="num">${t.spend.toLocaleString()}</td>
-      <td class="num">${t.g}/${RULES.caps.Gold}</td>
-      <td class="num">${t.s}/${RULES.caps.Silver}</td>
-      <td class="num">${t.b}/${RULES.caps.Bronze}</td>
-      <td class="num">${t.count}/15</td>
-      <td class="num">${15-t.count}</td>`;
+      <td><b class="team-name">${t.team}</b></td>
+      <td class="money"><span class="${purseClass} money-pill">${t.purse.toLocaleString()}</span></td>
+      <td class="money">${t.spend.toLocaleString()}</td>
+      <td>${catMeter('gold', t.g, RULES.caps.Gold)}</td>
+      <td>${catMeter('silver', t.s, RULES.caps.Silver)}</td>
+      <td>${catMeter('bronze', t.b, RULES.caps.Bronze)}</td>
+      <td>${t.count}/15</td>
+      <td>${15-t.count}</td>`;
     tbody.appendChild(tr);
   }
 
@@ -287,6 +300,11 @@ function renderOverview() {
       <div class="bar ${c.toLowerCase()}"><div style="width:${pct}%"></div></div>
     </div>`;
   }).join('');
+}
+
+function catMeter(kind, used, cap) {
+  const full = used >= cap ? ' full' : '';
+  return `<span class="cat-cell"><span class="cat-meter ${kind}${full}">${used}/${cap}</span></span>`;
 }
 
 function renderLiveLot() {
