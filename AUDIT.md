@@ -15,8 +15,8 @@ Min demand to reach 11/team total: **15 slots**. Pool has **44**. Comfortable.
 ## Money
 
 - Total purse left across 8 teams: **368,800**
-- Floor-only spend if all sold at floor: **285,000**
-- Headroom for above-floor bidding: **83,800**
+- Floor-only spend if all sold at floor: **330,000**
+- Headroom for above-floor bidding: **38,800**
 - Min-fill cost (15 slots × 4k Bronze floor): 60,000
 
 All teams can afford min roster.
@@ -24,7 +24,7 @@ All teams can afford min roster.
 ## Rules in effect
 
 - Caps per team: **Gold 3, Silver 5, Bronze 7** (total 15 max, 11 min)
-- Floors: **Gold 20,000, Silver 7,000, Bronze 4,000**
+- Floors: **Gold 20,000, Silver 10,000, Bronze 4,000**
 - Total purse per team: 140,000 (120k base + 20k extra)
 - RTM: **OFF**
 

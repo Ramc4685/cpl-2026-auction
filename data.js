@@ -9,7 +9,7 @@ window.CPL_DATA = {
     "total_points": 140000,
     "floors": {
       "Gold": 20000,
-      "Silver": 7000,
+      "Silver": 10000,
       "Bronze": 4000
     }
   },

@@ -56,7 +56,7 @@ Cricket Auction/
 | Max Silver per team | 5 |
 | Max Bronze per team | 7 |
 | Gold floor | 20,000 |
-| Silver floor | 7,000 |
+| Silver floor | 10,000 |
 | Bronze floor | 4,000 |
 | RTM | OFF |
 
@@ -126,5 +126,5 @@ Or hand-edit `data.js` for small changes — it's a single JSON object assigned 
 ## Version history
 
 - **v1** (May 1, 2026) — Initial build with old caps (4/5/6) and old floors (5k/2.5k/1k).
-- **v2** (May 1, 2026) — New caps (3/5/7), new floors (20k/7k/4k), new auction pool (44 players, 4G/15S/25B).
+- **v2** (May 1, 2026) — New caps (3/5/7), new floors (20k/10k/4k), new auction pool (44 players, 4G/15S/25B).
 - **v3** (May 1, 2026) — Refreshed auction pool categories from Google Sheet while preserving 44 players and 4G/15S/25B counts.
