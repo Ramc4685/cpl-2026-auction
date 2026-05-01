@@ -916,15 +916,6 @@ window.CPL_DATA = {
       "spec": null
     },
     {
-      "player": "Naveen Mogulapally",
-      "category": "Bronze",
-      "reg_type": "Existing",
-      "prev_team": null,
-      "prev_points": null,
-      "role": null,
-      "spec": null
-    },
-    {
       "player": "Prakash Sridhar",
       "category": "Bronze",
       "reg_type": "Existing",
@@ -941,15 +932,6 @@ window.CPL_DATA = {
       "prev_points": 6000.0,
       "role": "All Rounder Wicketkeeper",
       "spec": "Right Hand"
-    },
-    {
-      "player": "Rohith Kariveda",
-      "category": "Bronze",
-      "reg_type": "New",
-      "prev_team": null,
-      "prev_points": null,
-      "role": null,
-      "spec": null
     },
     {
       "player": "Satheeshkumar Kannan",
@@ -1033,6 +1015,24 @@ window.CPL_DATA = {
       "spec": null
     },
     {
+      "player": "Abhishek Budala",
+      "category": "Bronze",
+      "reg_type": "Existing",
+      "prev_team": null,
+      "prev_points": null,
+      "role": null,
+      "spec": null
+    },
+    {
+      "player": "Sandeep Raghuvanshi",
+      "category": "Bronze",
+      "reg_type": "New",
+      "prev_team": null,
+      "prev_points": null,
+      "role": null,
+      "spec": null
+    },
+    {
       "player": "Gaurav Sadawat",
       "category": "Gold",
       "reg_type": "New",
@@ -1042,8 +1042,53 @@ window.CPL_DATA = {
       "spec": null
     },
     {
-      "player": "Parag Kajrolkar",
+      "player": "Ganesh Anbule",
       "category": "Gold",
+      "reg_type": "New",
+      "prev_team": null,
+      "prev_points": null,
+      "role": null,
+      "spec": null
+    },
+    {
+      "player": "Kanaka raju Sayala",
+      "category": "Gold",
+      "reg_type": "New",
+      "prev_team": null,
+      "prev_points": null,
+      "role": null,
+      "spec": null
+    },
+    {
+      "player": "Pruthviraj Takkuri",
+      "category": "Gold",
+      "reg_type": "Existing",
+      "prev_team": "BLOOM BARWARCHI BULLS",
+      "prev_points": 29500.0,
+      "role": "Batting All Rounder",
+      "spec": "Right Hand"
+    },
+    {
+      "player": "Naveen Mogulapally",
+      "category": "Silver",
+      "reg_type": "Existing",
+      "prev_team": null,
+      "prev_points": null,
+      "role": null,
+      "spec": null
+    },
+    {
+      "player": "Rohith Kariveda",
+      "category": "Silver",
+      "reg_type": "New",
+      "prev_team": null,
+      "prev_points": null,
+      "role": null,
+      "spec": null
+    },
+    {
+      "player": "Parag Kajrolkar",
+      "category": "Silver",
       "reg_type": "New",
       "prev_team": null,
       "prev_points": null,
@@ -1052,7 +1097,7 @@ window.CPL_DATA = {
     },
     {
       "player": "Senthil kumar Rathinasamy",
-      "category": "Gold",
+      "category": "Silver",
       "reg_type": "New",
       "prev_team": null,
       "prev_points": null,
@@ -1061,7 +1106,7 @@ window.CPL_DATA = {
     },
     {
       "player": "Senthilkumar Krishnan",
-      "category": "Gold",
+      "category": "Silver",
       "reg_type": "New",
       "prev_team": null,
       "prev_points": null,
@@ -1076,33 +1121,6 @@ window.CPL_DATA = {
       "prev_points": 23000.0,
       "role": "Batting All Rounder",
       "spec": "Right Hand Batsman"
-    },
-    {
-      "player": "Ganesh Anbule",
-      "category": "Silver",
-      "reg_type": "New",
-      "prev_team": null,
-      "prev_points": null,
-      "role": null,
-      "spec": null
-    },
-    {
-      "player": "Kanaka raju Sayala",
-      "category": "Silver",
-      "reg_type": "New",
-      "prev_team": null,
-      "prev_points": null,
-      "role": null,
-      "spec": null
-    },
-    {
-      "player": "Pruthviraj Takkuri",
-      "category": "Silver",
-      "reg_type": "Existing",
-      "prev_team": "BLOOM BARWARCHI BULLS",
-      "prev_points": 29500.0,
-      "role": "Batting All Rounder",
-      "spec": "Right Hand"
     },
     {
       "player": "Sandeep Kalvakolu",
@@ -1168,15 +1186,6 @@ window.CPL_DATA = {
       "spec": null
     },
     {
-      "player": "Abhishek Budala",
-      "category": "Silver",
-      "reg_type": "Existing",
-      "prev_team": null,
-      "prev_points": null,
-      "role": null,
-      "spec": null
-    },
-    {
       "player": "Rajamohan Reddy Anukolu",
       "category": "Silver",
       "reg_type": "Existing",
@@ -1184,15 +1193,6 @@ window.CPL_DATA = {
       "prev_points": 5750.0,
       "role": "All Rounder",
       "spec": "Right Hand"
-    },
-    {
-      "player": "Sandeep Raghuvanshi",
-      "category": "Silver",
-      "reg_type": "New",
-      "prev_team": null,
-      "prev_points": null,
-      "role": null,
-      "spec": null
     },
     {
       "player": "Praneeth Reddy",

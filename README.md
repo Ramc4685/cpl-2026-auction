@@ -56,7 +56,7 @@ URL becomes `https://<you>.github.io/cpl-2026-auction/`.
 
 ## Pre-auction checklist
 
-1. Resolve 3 Unknown players (edit `data.js` or refresh from updated workbook — see "Refresh data" below).
+1. Confirm latest player/category sheet has 44 players and no Unknown category players.
 2. Confirm bid floors and increments in `rules.html`.
 3. Confirm `MIN_ROSTER` = 11 (edit `RULES.roster.min` in `admin.html` and `index.html` if different).
 4. Test on mobile + desktop.

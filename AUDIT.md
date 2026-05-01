@@ -30,8 +30,8 @@ All teams can afford min roster.
 
 ## Pool composition
 
-- 11 players have prior teams (released to auction). Notable: Anirudh Vemula, Pruthviraj Takkuri (BLOOM BULLS Silvers, prev 23k+29.5k), Kuldeep Sharma (TECHIE Silver, prev 11.3k).
-- 4 Gold players: Gaurav Sadawat, Parag Kajrolkar, Senthil kumar Rathinasamy, Senthilkumar Krishnan (all New).
+- 11 players have prior teams (released to auction). Notable: Anirudh Vemula, Pruthviraj Takkuri (BLOOM BULLS, now Gold, prev 29.5k), Kuldeep Sharma (TECHIE Silver, prev 11.3k).
+- 4 Gold players: Gaurav Sadawat, Ganesh Anbule, Kanaka raju Sayala, Pruthviraj Takkuri.
 - All Unknowns reclassified.
 
 ## Per-team status
