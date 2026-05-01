@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>CPL 2026 — Owner Dashboard</title>
 <style>
   :root{--bg:#0b1220;--card:#121a2e;--card2:#1a2440;--ink:#e6edf6;--mute:#8aa0c2;--accent:#fbbf24;--ok:#10b981;--bad:#ef4444;--warn:#f59e0b;--blue:#3b82f6}
@@ -15,6 +18,7 @@
   .topbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap}
   select,input[type=file],button{font:inherit;color:var(--ink);background:var(--card2);border:1px solid #344163;border-radius:6px;padding:8px 10px}
   button{cursor:pointer;background:var(--blue);border-color:var(--blue);font-weight:600}
+  button.secondary{background:var(--card2);border-color:#344163;color:var(--ink)}
   .panel{background:var(--card);border:1px solid #25324d;border-radius:10px;padding:16px;margin-bottom:14px}
   .panel h2{margin:0 0 12px;font-size:13px;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
@@ -70,7 +74,7 @@
     .wrap{padding:10px}
     .topbar{align-items:stretch;gap:8px;margin-bottom:10px}
     .topbar label{width:100%}
-    .topbar select,.topbar input{width:100%;min-height:44px}
+    .topbar select,.topbar input,.topbar button{width:100%;min-height:44px}
     #stateInfo{display:block;width:100%;line-height:1.35}
     .panel{padding:12px;margin-bottom:10px;border-radius:8px}
     .panel h2{font-size:12px;margin-bottom:10px}
@@ -126,6 +130,7 @@
       <option value="">— All teams overview —</option>
     </select>
     <button id="loadStateBtn" style="display:none">Load auction state JSON</button>
+    <button id="refreshLiveBtn" class="secondary" type="button">Refresh live</button>
     <input type="file" id="stateFile" accept=".json" style="display:none">
     <span class="small" id="stateInfo"></span>
   </div>
@@ -540,14 +545,14 @@ function jsonp(url, params={}, timeoutMs=10000) {
   });
 }
 
-async function loadOnlineState() {
+async function loadOnlineState(force=false) {
   const url = onlineUrl();
   if (!url) return;
   try {
     const data = await jsonp(url, {action:'state'});
     if (!data.ok || !data.state) throw new Error(data.error || 'Invalid online state');
     const next = normalizeState(data.state);
-    if (Number(next.revision || 0) >= Number(auctionState.revision || 0)) {
+    if (force || Number(next.revision || 0) >= Number(auctionState.revision || 0)) {
       auctionState = next;
       localStorage.setItem('cpl2026_state_v1', JSON.stringify(auctionState));
       renderAll();
@@ -564,6 +569,12 @@ for (const t of D.teams.slice().sort()) { const o=document.createElement('option
 $('teamSel').addEventListener('change', renderAll);
 $('poolCatFilter').addEventListener('input', renderPool);
 $('poolSearch').addEventListener('input', renderPool);
+$('refreshLiveBtn').addEventListener('click', async () => {
+  localStorage.removeItem('cpl2026_state_v1');
+  auctionState = normalizeState({});
+  renderAll();
+  await loadOnlineState(true);
+});
 $('loadStateBtn').addEventListener('click', () => $('stateFile').click());
 $('stateFile').addEventListener('change', e => {
   const f = e.target.files[0]; if (!f) return;
