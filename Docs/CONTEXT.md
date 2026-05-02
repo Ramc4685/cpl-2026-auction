@@ -26,7 +26,8 @@ This site solves all of the above.
 
 ```
 Cricket Auction/
-├── index.html      Owner Dashboard (read-only, default page)
+├── owner.html      Owner Dashboard (read-only, default page)
+├── index.html      Redirects to owner.html for old/default links
 ├── admin.html      Live Auction Console (admin-only)
 ├── rules.html      Auction Rules one-pager (printable)
 ├── data.js         Embedded data: teams, retained, pool, rules
@@ -39,11 +40,11 @@ Cricket Auction/
     └── CONTEXT.md  This file
 ```
 
-**Data flow.** `data.js` defines `window.CPL_DATA` containing teams, retained roster, auction pool, and rules. Both `admin.html` and `index.html` read it on load.
+**Data flow.** `data.js` defines `window.CPL_DATA` containing teams, retained roster, auction pool, and rules. Both `admin.html` and `owner.html` read it on load. `index.html` exists only as a redirect to `owner.html`.
 
 **State flow.** The console writes auction outcomes and the current high bid to `localStorage` under key `cpl2026_state_v1`. If `config.js` has an Apps Script Web App URL and the conductor enters the admin key, the console also publishes state to a Google Sheet through Apps Script. The owner dashboard and public spectator page poll the Web App URL every few seconds.
 
-**Backend.** Lightweight Google Sheet/App Script bridge only. Single-admin model. Each admin push writes the machine-readable `State` tab plus readable `Auction Log`, `League Summary`, `Player Pool`, and one tab per team.
+**Backend.** Lightweight Google Sheet/App Script bridge only. Single-admin model. Each admin push writes the machine-readable `State` tab plus readable `Auction Log`, `League Summary`, `Player Pool`, and one tab per team. The admin page has a static front-door password for casual access control; the Apps Script admin key is the real write protection.
 
 ## Rules in effect (v3 — current)
 
@@ -84,10 +85,10 @@ Bid increments:
 ## Auction-day workflow
 
 1. Open `admin.html` on laptop (you).
-2. Share screen on Zoom. Owners can also open `index.html` (read-only).
+2. Share screen on Zoom. Owners can also open `owner.html` (read-only).
 3. Per lot: pick player → enter winning team + price → SOLD or UNSOLD.
 4. Console enforces exact category targets, roster, floor, purse, and required-slot reserve.
-5. Owners/spectators watch `index.html`, which updates live from Apps Script.
+5. Owners/spectators watch `owner.html`, which updates live from Apps Script.
 6. Export JSON every ~10 lots and post-auction as a backup archive.
 
 ## Pre-auction checklist

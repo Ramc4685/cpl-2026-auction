@@ -4,7 +4,8 @@ Static site hosted on GitHub Pages, with optional Google Sheets live sync throug
 
 ## Files
 
-- `index.html` — Owner Dashboard (read-only). Default landing page.
+- `owner.html` — Owner Dashboard (read-only).
+- `index.html` — Redirects old/default links to `owner.html`.
 - `public.html` — Public spectator dashboard (read-only, mobile-first).
 - `admin.html` — Live Auction Console (you drive this).
 - `rules.html` — Auction Rules one-pager (printable).
@@ -17,7 +18,7 @@ Static site hosted on GitHub Pages, with optional Google Sheets live sync throug
 
 The console (`admin.html`) always writes to `localStorage` in your browser first.
 
-If `config.js` has a Google Apps Script Web App URL and the admin enters the write key, the console also publishes the same state online. The owner dashboard (`index.html`) and public spectator page (`public.html`) poll the Apps Script URL every few seconds, so owners and spectators can watch live from GitHub Pages. Bid-pad clicks publish the current high bid before the final sale is committed.
+If `config.js` has a Google Apps Script Web App URL and the admin enters the write key, the console also publishes the same state online. The owner dashboard (`owner.html`) and public spectator page (`public.html`) poll the Apps Script URL every few seconds, so owners and spectators can watch live from GitHub Pages. Bid-pad clicks publish the current high bid before the final sale is committed.
 
 If online sync is not configured or fails, export JSON from the console and use "Load auction state JSON" on the dashboard as a backup.
 
@@ -33,7 +34,7 @@ If online sync is not configured or fails, export JSON from the console and use 
    - Who has access: `Anyone`
 7. Copy the Web App URL ending in `/exec`.
 8. Paste that URL into `config.js` as `APPS_SCRIPT_URL`.
-9. Open `admin.html`, enter the same admin key, and click `Save sync settings`.
+9. Open `admin.html`, unlock the console, enter the same admin key, and click `Save sync settings`.
 10. After that, every admin action auto-pushes online. Use `Force push now` only if you want to resend the current state manually.
 
 The Google Sheet will keep:
@@ -77,7 +78,7 @@ Re-run the Python conversion script (see `AUDIT.md` for the source workbook fiel
 ## Auction-day workflow
 
 1. Open `admin.html` on your laptop. Keep it open.
-2. Share `index.html` GitHub Pages URL with owners/spectators.
+2. Share `owner.html` GitHub Pages URL with owners/spectators.
 3. For each lot: pick player → enter winning team + price → SOLD / UNSOLD.
 4. Console enforces: exact category targets, 15-player roster, purse, floor, required-slot reserve, increment format.
 5. If a mistake happens, use Undo Last for the most recent lot, or Correction Desk for older lots.
@@ -88,4 +89,5 @@ Re-run the Python conversion script (see `AUDIT.md` for the source workbook fiel
 
 - Single-admin. Only one conductor should use `admin.html` during the auction.
 - Apps Script POST is queued and confirmed by revision: the admin page writes automatically after every action, then checks the published revision.
-- The admin key protects writes, but this is a lightweight one-time-event setup, not a full authentication system.
+- `admin.html` has a front-door password screen to stop casual URL guessing. Because this is GitHub Pages, it is still a static-page deterrent, not server authentication.
+- The Apps Script admin key is the real write protection for online data. Keep it private.

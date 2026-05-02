@@ -78,20 +78,40 @@
   .bid-team:disabled .next,.bid-team:disabled .cap{color:#6f7f9e}
   @media (max-width:700px){.bid-grid{grid-template-columns:1fr 1fr}.bid-head{align-items:flex-start;flex-direction:column}.bid-head .sub{text-align:left}}
   .site-credit{max-width:1500px;margin:0 auto 28px;padding:0 18px;color:var(--mute);font-size:12px;text-align:center}
+  body.admin-locked header,body.admin-locked .wrap,body.admin-locked .site-credit,body.admin-locked #importFile{display:none}
+  body:not(.admin-locked) .admin-lock{display:none}
+  .admin-lock{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top,#17213b 0,#0b1220 48%)}
+  .lock-card{width:min(420px,100%);background:var(--card);border:1px solid #25324d;border-radius:10px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  .lock-card h1{margin:0 0 6px;font-size:20px;line-height:1.2}
+  .lock-card p{margin:0 0 16px;color:var(--mute)}
+  .lock-card input{min-height:46px}
+  .lock-card button{margin-top:10px;min-height:46px}
+  .lock-error{min-height:18px;margin-top:8px;color:var(--bad);font-size:12px}
   hr{border:0;border-top:1px solid #25324d;margin:10px 0}
 </style>
 </head>
-<body>
+<body class="admin-locked">
+<div class="admin-lock">
+  <form class="lock-card" id="adminLockForm">
+    <h1>CPL 2026 Admin</h1>
+    <p>Enter the conductor password to open the auction console on this device.</p>
+    <label for="adminPassword">Password</label>
+    <input id="adminPassword" type="password" autocomplete="current-password" autofocus>
+    <button type="submit">Unlock Admin Console</button>
+    <div class="lock-error" id="adminLockError"></div>
+  </form>
+</div>
 <header>
   <h1>🏏 CPL 2026 — Live Auction Console</h1>
   <div class="sync-pill" id="syncPill">Local only</div>
   <div class="nav">
     <a href="rules.html">Rules</a>
     <a href="public.html">Public View</a>
-    <a href="index.html">Owner View</a>
+    <a href="owner.html">Owner View</a>
     <a href="#" id="exportBtn">Export JSON</a>
     <a href="#" id="importBtn">Import</a>
     <a href="#" id="resetBtn">Reset</a>
+    <a href="#" id="lockAdminBtn">Lock</a>
   </div>
 </header>
 <div class="wrap">
@@ -242,6 +262,37 @@
 <script src="config.js"></script>
 <script src="data.js"></script>
 <script>
+const ADMIN_LOCK_KEY = 'cpl2026_admin_unlocked';
+const ADMIN_PASSWORD_SHA256 = 'aa024b19c11d5f5e41ed97220f2ffbc85bd22337f1f68aa06937f5bbb82ffab3';
+
+async function sha256Hex(text) {
+  const data = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function setAdminLocked(locked) {
+  document.body.classList.toggle('admin-locked', locked);
+  if (!locked) sessionStorage.setItem(ADMIN_LOCK_KEY, '1');
+  else sessionStorage.removeItem(ADMIN_LOCK_KEY);
+}
+
+if (sessionStorage.getItem(ADMIN_LOCK_KEY) === '1') setAdminLocked(false);
+
+document.getElementById('adminLockForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const input = document.getElementById('adminPassword');
+  const error = document.getElementById('adminLockError');
+  error.textContent = '';
+  if (await sha256Hex(input.value.trim()) === ADMIN_PASSWORD_SHA256) {
+    input.value = '';
+    setAdminLocked(false);
+  } else {
+    error.textContent = 'Wrong password';
+    input.select();
+  }
+});
+
 // ============= STATE =============
 const STORAGE_KEY = 'cpl2026_state_v1';
 const SYNC_URL_KEY = 'cpl2026_sync_url';
@@ -1137,6 +1188,7 @@ $('exportBtn').addEventListener('click', e => {e.preventDefault(); exportJSON();
 $('importBtn').addEventListener('click', e => {e.preventDefault(); $('importFile').click();});
 $('importFile').addEventListener('change', e => { if(e.target.files[0]) importJSON(e.target.files[0]); });
 $('resetBtn').addEventListener('click', e => {e.preventDefault(); resetAll();});
+$('lockAdminBtn').addEventListener('click', e => {e.preventDefault(); setAdminLocked(true); $('adminPassword').focus();});
 $('editLotSel').addEventListener('change', loadCorrectionForm);
 $('editAction').addEventListener('change', toggleCorrectionFields);
 $('saveCorrectionBtn').addEventListener('click', saveCorrection);
