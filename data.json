@@ -798,12 +798,12 @@
     {
       "team": "TECHIE BRAINS",
       "player": "Venkata Kommireddi",
-      "status": "Retained Not Registered",
+      "status": "Retained Registered",
       "points": 2000.0,
       "category": "Bronze",
       "role": "Bowling All Rounder",
       "spec": "Right Arm Medium",
-      "notes": "Excluded from spent and purse"
+      "notes": null
     }
   ],
   "pool": [
@@ -1228,7 +1228,7 @@
     "TECHIE BRAINS": {
       "Gold": 2,
       "Silver": 2,
-      "Bronze": 3
+      "Bronze": 4
     },
     "GPT SHERS": {
       "Gold": 3,
@@ -1251,7 +1251,7 @@
     "PARKE REGENCY THALAIVAS": 92400.0,
     "ARCHRIVALS": 111500.0,
     "CRAFTBARN CHALLENGERS": 96250.0,
-    "TECHIE BRAINS": 75700.0,
+    "TECHIE BRAINS": 77700.0,
     "GPT SHERS": 117500.0,
     "GNRSYSTEM LIONS": 102900.0,
     "BLOOM EVENTS": 108700.0
@@ -1261,7 +1261,7 @@
     "PARKE REGENCY THALAIVAS": 8,
     "ARCHRIVALS": 12,
     "CRAFTBARN CHALLENGERS": 8,
-    "TECHIE BRAINS": 7,
+    "TECHIE BRAINS": 8,
     "GPT SHERS": 13,
     "GNRSYSTEM LIONS": 10,
     "BLOOM EVENTS": 10
@@ -1274,8 +1274,8 @@
   "slots_to_max": {
     "Gold": 4,
     "Silver": 15,
-    "Bronze": 25,
-    "Total": 44
+    "Bronze": 24,
+    "Total": 43
   },
   "slots_to_min": {
     "Total": 15

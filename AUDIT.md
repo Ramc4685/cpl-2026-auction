@@ -32,13 +32,14 @@ All teams must preserve enough purse to complete their remaining Gold, Silver, a
 
 - 11 players have prior teams (released to auction). Notable: Anirudh Vemula, Pruthviraj Takkuri (BLOOM BULLS, now Gold, prev 29.5k), Kuldeep Sharma (TECHIE Silver, prev 11.3k).
 - 4 Gold players include Senthilkumar Krishnan and Pruthviraj Takkuri after the latest category corrections.
+- Venkata Kommireddi is now a registered Techie retained Bronze player at 2,000, so the auction pool has one extra Bronze player beyond remaining roster demand.
 - All Unknowns reclassified.
 
 ## Per-team status
 
 | Team | Retained | Required buys to 15 | Purse left | G/S/B required |
 |---|---|---|---|---|
-| TECHIE BRAINS | 7 | 8 | 64,300 | 1/3/4 |
+| TECHIE BRAINS | 8 | 7 | 62,300 | 1/3/3 |
 | BLOOM BARWARCHI BULLS | 8 | 7 | 93,750 | 2/2/3 |
 | PARKE REGENCY THALAIVAS | 8 | 7 | 47,600 | 1/2/4 |
 | CRAFTBARN CHALLENGERS | 8 | 7 | 43,750 | 0/2/5 |
@@ -56,7 +57,7 @@ GPT SHERS is full on Bronze. ARCHRIVALS and GPT SHERS have minimal purse — the
 Only 3 teams compete for 4 Gold:
 - BLOOM BULLS — 2 Gold slots, purse 93,750
 - PARKE — 1 Gold slot, purse 47,600
-- TECHIE — 1 Gold slot, purse 64,300
+- TECHIE — 1 Gold slot, purse 62,300
 
 4 Gold for 4 demand slots. With the 15k Gold floor, BLOOM, PARKE, and TECHIE can all legally compete for Gold.
 
