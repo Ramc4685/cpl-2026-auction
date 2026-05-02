@@ -156,7 +156,7 @@
       <h2>Teams Standing</h2>
       <div class="scroll">
         <table id="teamsTable"><thead>
-          <tr><th>Team</th><th class="money">Purse</th><th class="money">Spent</th><th>Gold</th><th>Silver</th><th>Bronze</th><th>Total</th><th>Slots Left</th><th class="money">Max Bid</th></tr>
+          <tr><th>Team</th><th class="money">Purse</th><th class="money">Spent</th><th>Gold</th><th>Silver</th><th>Bronze</th><th>Total</th><th>Slots Left</th><th class="money">Legal Max</th></tr>
         </thead><tbody></tbody></table>
       </div>
     </div>
@@ -174,7 +174,7 @@
         <div class="stat"><div class="k">Purse Remaining</div><div class="v" id="t_purse"></div><div class="sub" id="t_spent"></div></div>
         <div class="stat"><div class="k">Roster</div><div class="v" id="t_roster"></div><div class="sub">of 15 required</div></div>
         <div class="stat"><div class="k">Required Slots</div><div class="v" id="t_mustbuy"></div><div class="sub">to complete 3G / 5S / 7B</div></div>
-        <div class="stat"><div class="k">Max Bid Current Lot</div><div class="v" id="t_maxbid"></div><div class="sub" id="t_maxbid_sub">waiting for live lot</div></div>
+        <div class="stat"><div class="k">Legal Max Current Lot</div><div class="v" id="t_maxbid"></div><div class="sub" id="t_maxbid_sub">waiting for live lot</div></div>
       </div>
     </div>
 
@@ -333,9 +333,42 @@ function maxBidForCategory(teamOrStats, category) {
   return {ok:max >= floor, max, reserve, needs:remainingNeeds, msg:max >= floor ? '' : `Max ${category} bid is ${max.toLocaleString()}, below floor ${floor.toLocaleString()} after reserving ${reserve.toLocaleString()}`};
 }
 
-function maxBidLabel(maxInfo, category) {
+function currentBidForLot() {
+  const player = auctionState.currentLot;
+  const bid = auctionState.currentBid;
+  return player && bid && bid.player === player ? bid : null;
+}
+
+function maxBidLabel(maxInfo, category, previousPts=0) {
   if (!category || maxInfo.max === null) return '—';
-  return maxInfo.ok ? maxInfo.max.toLocaleString() : 'No bid';
+  const legalMax = legalMaxFromReserve(maxInfo, category, previousPts);
+  return legalMax ? legalMax.toLocaleString() : 'No bid';
+}
+
+function incrementForAmount(pts) {
+  if (pts <= 10000) return 500;
+  if (pts <= 25000) return 1000;
+  if (pts <= 50000) return 2500;
+  return 5000;
+}
+
+function nextLegalBidAfter(previousPts, category) {
+  const floor = RULES.floors[category] || 0;
+  if (!previousPts) return floor;
+  return previousPts + incrementForAmount(previousPts);
+}
+
+function legalMaxFromReserve(maxInfo, category, previousPts=0) {
+  if (!maxInfo.ok || !category) return 0;
+  let amount = nextLegalBidAfter(previousPts, category);
+  let legalMax = 0;
+  let guard = 0;
+  while (amount <= maxInfo.max && guard < 200) {
+    legalMax = amount;
+    amount = nextLegalBidAfter(amount, category);
+    guard++;
+  }
+  return legalMax;
 }
 
 function poolStatus(player){
@@ -363,11 +396,15 @@ function renderOverview() {
   const tbody = $('teamsTable').querySelector('tbody');
   tbody.innerHTML = '';
   const lotCategory = currentLotCategory();
+  const currentBid = currentBidForLot();
+  const currentBidPts = Number(currentBid && currentBid.pts || 0);
   for (const t of totals) {
     const tr = document.createElement('tr');
     const purseClass = t.purse < 5000 ? 'pill bad' : t.purse < 20000 ? 'pill warn' : 'pill ok';
     const maxInfo = maxBidForCategory(t, lotCategory);
-    const maxBidText = maxBidLabel(maxInfo, lotCategory);
+    const maxBidText = currentBid && currentBid.team === t.team
+      ? 'High bidder'
+      : maxBidLabel(maxInfo, lotCategory, currentBidPts);
     tr.innerHTML = `
       <td data-label="Team"><b class="team-name">${t.team}</b></td>
       <td data-label="Purse" class="money"><span class="${purseClass} money-pill">${t.purse.toLocaleString()}</span></td>
@@ -377,7 +414,7 @@ function renderOverview() {
       <td data-label="Bronze">${catMeter('bronze', t.b, RULES.caps.Bronze)}</td>
       <td data-label="Total">${t.count}/15</td>
       <td data-label="Slots Left">${Math.max(0, 15-t.count)}</td>
-      <td data-label="${lotCategory ? `Max ${lotCategory}` : 'Max Bid'}" class="money">${maxBidText}</td>`;
+      <td data-label="${lotCategory ? `Legal ${lotCategory}` : 'Legal Max'}" class="money">${maxBidText}</td>`;
     tbody.appendChild(tr);
   }
 
@@ -462,9 +499,14 @@ function renderTeam(team) {
   $('t_mustbuy').textContent = totalNeed(needs);
   const lotCategory = currentLotCategory();
   const maxInfo = maxBidForCategory(t, lotCategory);
-  $('t_maxbid').textContent = maxBidLabel(maxInfo, lotCategory);
+  const currentBid = currentBidForLot();
+  const currentBidPts = Number(currentBid && currentBid.pts || 0);
+  const isHighBidder = currentBid && currentBid.team === team;
+  $('t_maxbid').textContent = isHighBidder ? 'High bidder' : maxBidLabel(maxInfo, lotCategory, currentBidPts);
   $('t_maxbid_sub').textContent = lotCategory
-    ? (maxInfo.ok
+    ? (isHighBidder
+      ? `${lotCategory} lot · current bid ${currentBidPts.toLocaleString()}`
+      : maxInfo.ok
       ? `${lotCategory} lot · reserves ${maxInfo.reserve.toLocaleString()} for required slots`
       : maxInfo.msg)
     : 'waiting for live lot';
@@ -486,8 +528,10 @@ function renderTeam(team) {
   `).join('') + `
     <tr><td><b>Total required reserve</b></td><td class="num"><b>${totalNeed(needs)}</b></td><td class="num"><b>${reserveForNeeds(needs).toLocaleString()}</b></td></tr>`;
   $('watchNote').textContent = lotCategory
-    ? (maxInfo.ok
-      ? `For this ${lotCategory} lot, max bid is ${maxInfo.max.toLocaleString()} after reserving ${maxInfo.reserve.toLocaleString()} for the remaining required category slots.`
+    ? (isHighBidder
+      ? `You are current high bidder at ${currentBidPts.toLocaleString()}.`
+      : maxInfo.ok
+      ? `For this ${lotCategory} lot, legal max is ${maxBidLabel(maxInfo, lotCategory, currentBidPts)} after reserving ${maxInfo.reserve.toLocaleString()} for the remaining required category slots.`
       : maxInfo.msg)
     : `Waiting for a live lot. Max bid will be calculated against the current player's category.`;
 
