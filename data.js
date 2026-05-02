@@ -1052,7 +1052,7 @@ window.CPL_DATA = {
     },
     {
       "player": "Kanaka raju Sayala",
-      "category": "Gold",
+      "category": "Silver",
       "reg_type": "New",
       "prev_team": null,
       "prev_points": null,
@@ -1106,7 +1106,7 @@ window.CPL_DATA = {
     },
     {
       "player": "Senthilkumar Krishnan",
-      "category": "Silver",
+      "category": "Gold",
       "reg_type": "New",
       "prev_team": null,
       "prev_points": null,
