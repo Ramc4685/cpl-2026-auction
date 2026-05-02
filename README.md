@@ -5,6 +5,7 @@ Static site hosted on GitHub Pages, with optional Google Sheets live sync throug
 ## Files
 
 - `index.html` — Owner Dashboard (read-only). Default landing page.
+- `public.html` — Public spectator dashboard (read-only, mobile-first).
 - `admin.html` — Live Auction Console (you drive this).
 - `rules.html` — Auction Rules one-pager (printable).
 - `data.js` — Embedded data (teams, retained, pool). Auto-loaded.
@@ -16,7 +17,7 @@ Static site hosted on GitHub Pages, with optional Google Sheets live sync throug
 
 The console (`admin.html`) always writes to `localStorage` in your browser first.
 
-If `config.js` has a Google Apps Script Web App URL and the admin enters the write key, the console also publishes the same state online. The public dashboard (`index.html`) polls the Apps Script URL every few seconds, so owners and spectators can watch live from GitHub Pages.
+If `config.js` has a Google Apps Script Web App URL and the admin enters the write key, the console also publishes the same state online. The owner dashboard (`index.html`) and public spectator page (`public.html`) poll the Apps Script URL every few seconds, so owners and spectators can watch live from GitHub Pages. Bid-pad clicks publish the current high bid before the final sale is committed.
 
 If online sync is not configured or fails, export JSON from the console and use "Load auction state JSON" on the dashboard as a backup.
 

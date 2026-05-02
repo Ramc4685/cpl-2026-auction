@@ -119,6 +119,7 @@
 <header>
   <h1>🏏 CPL 2026 — Owner Dashboard</h1>
   <div class="nav">
+    <a href="public.html">Public View</a>
     <a href="rules.html">Rules</a>
     <span class="ro">Read-only</span>
   </div>
@@ -240,7 +241,7 @@ const RULES = {
   totalPurse: 140000,
 };
 
-let auctionState = {sold:{}, unsold:{}, log:[], audit:[], currentLot:null, revision:0, updatedAt:null};
+let auctionState = {sold:{}, unsold:{}, log:[], audit:[], currentLot:null, currentBid:null, revision:0, updatedAt:null};
 let lastOnlineCheckAt = null;
 const D = window.CPL_DATA;
 const POOL_BY_NAME = Object.fromEntries(D.pool.map(p => [p.player, p]));
@@ -253,11 +254,12 @@ try {
 } catch(e){}
 
 function normalizeState(input) {
-  const s = Object.assign({sold:{}, unsold:{}, log:[], audit:[], currentLot:null, revision:0, updatedAt:null}, input || {});
+  const s = Object.assign({sold:{}, unsold:{}, log:[], audit:[], currentLot:null, currentBid:null, revision:0, updatedAt:null}, input || {});
   s.sold = s.sold || {};
   s.unsold = s.unsold || {};
   s.log = Array.isArray(s.log) ? s.log : [];
   s.audit = Array.isArray(s.audit) ? s.audit : [];
+  s.currentBid = s.currentBid || null;
   rebuildOutcomesFromLog(s);
   return s;
 }
@@ -416,8 +418,10 @@ function renderLiveLot() {
     const floor = RULES.floors[p.category] || 0;
     $('liveLotName').innerHTML = `${p.player} <span class="pill ${p.category.toLowerCase()}">${p.category}</span>`;
     $('liveLotMeta').textContent = [p.role, p.spec].filter(Boolean).join(' · ') || 'Current lot is open';
+    const bid = auctionState.currentBid && auctionState.currentBid.player === player ? auctionState.currentBid : null;
     $('liveLotStats').innerHTML = `
       <div class="stat"><div class="k">Floor</div><div class="v">${floor.toLocaleString()}</div></div>
+      <div class="stat"><div class="k">High Bid</div><div class="v">${bid ? Number(bid.pts || 0).toLocaleString() : '—'}</div><div class="sub">${bid ? bid.team : 'waiting for first bid'}</div></div>
       <div class="stat"><div class="k">Previous Team</div><div class="v" style="font-size:18px">${p.prev_team || '—'}</div></div>
       <div class="stat"><div class="k">Previous Points</div><div class="v">${p.prev_points || '—'}</div></div>
       <div class="stat"><div class="k">Lot</div><div class="v">#${(auctionState.log || []).length + 1}</div></div>`;

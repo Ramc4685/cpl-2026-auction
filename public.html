@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>CPL 2026 - Public Live Auction</title>
+<style>
+  :root{--bg:#0b1220;--panel:#121a2e;--panel2:#1a2440;--ink:#e6edf6;--mute:#8aa0c2;--line:#25324d;--accent:#fbbf24;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;--blue:#3b82f6}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}
+  header{position:sticky;top:0;z-index:10;background:#070d1a;border-bottom:1px solid var(--line);padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  h1{margin:0;font-size:16px;line-height:1.2}
+  .nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+  .nav a{color:var(--accent);text-decoration:none;font-size:13px;min-height:36px;display:inline-flex;align-items:center}
+  .wrap{max-width:1120px;margin:0 auto;padding:12px}
+  .status{font-size:12px;color:var(--mute);margin:2px 0 10px}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warn);margin-right:6px}
+  .dot.ok{background:var(--ok)}
+  .live{background:linear-gradient(135deg,#17213b,#26335d);border:1px solid #344163;border-radius:10px;padding:16px;margin-bottom:12px}
+  .live .label{font-size:11px;color:var(--mute);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .live .name{font-size:30px;font-weight:900;line-height:1.08;margin-top:4px;overflow-wrap:anywhere}
+  .live .meta{color:var(--mute);margin-top:6px}
+  .bidline{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .metric{background:rgba(11,18,32,.6);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px}
+  .metric .k{font-size:10px;color:var(--mute);text-transform:uppercase;font-weight:800;letter-spacing:.06em}
+  .metric .v{font-size:22px;font-weight:900;margin-top:2px;line-height:1.15;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+  .metric .sub{font-size:12px;color:var(--mute);margin-top:2px;overflow-wrap:anywhere}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:13px;margin-bottom:12px}
+  .panel h2{margin:0 0 10px;color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+  .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .team-card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;min-width:0}
+  .team-card .team{font-weight:900;line-height:1.15;overflow-wrap:anywhere}
+  .team-card .purse{font-size:18px;font-weight:900;color:#a7f3d0;margin-top:6px;font-variant-numeric:tabular-nums}
+  .team-card .split{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+  .pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 7px;font-size:11px;font-weight:800}
+  .pill.gold{background:#7c5800;color:#fde68a}
+  .pill.silver{background:#475569;color:#e2e8f0}
+  .pill.bronze{background:#78350f;color:#fed7aa}
+  .pill.sold{background:#1e3a8a;color:#bfdbfe}
+  .pill.ok{background:#064e3b;color:#a7f3d0}
+  .pill.warn{background:#78350f;color:#fcd34d}
+  .list{display:grid;gap:8px}
+  .row-card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+  .row-card .title{font-weight:850;overflow-wrap:anywhere}
+  .row-card .sub{font-size:12px;color:var(--mute);margin-top:2px;overflow-wrap:anywhere}
+  .amount{font-size:18px;font-weight:900;color:var(--accent);font-variant-numeric:tabular-nums;text-align:right}
+  .filters{display:flex;gap:8px;margin-bottom:10px}
+  select,input,button{font:inherit;color:var(--ink);background:var(--panel2);border:1px solid #344163;border-radius:7px;padding:9px 10px;min-height:44px}
+  select{min-width:128px}
+  input{width:100%;min-width:0}
+  button{background:var(--blue);border-color:var(--blue);font-weight:800}
+  .site-credit{color:var(--mute);font-size:12px;text-align:center;padding:4px 12px 22px}
+  @media (max-width:760px){
+    header{align-items:flex-start}
+    h1{font-size:15px;max-width:200px}
+    .wrap{padding:10px}
+    .live{padding:14px;border-radius:8px}
+    .live .name{font-size:25px}
+    .bidline{grid-template-columns:1fr 1fr}
+    .grid{grid-template-columns:1fr}
+    .team-card{padding:11px}
+    .team-card .split{justify-content:flex-start}
+    .filters{flex-direction:column}
+    select,input,button{width:100%}
+    .row-card{grid-template-columns:1fr}
+    .amount{text-align:left}
+  }
+  @media (max-width:360px){
+    .bidline{grid-template-columns:1fr}
+    h1{max-width:170px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>CPL 2026 - Public Live Auction</h1>
+  <div class="nav">
+    <a href="index.html">Owners</a>
+    <a href="rules.html">Rules</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="status" id="onlineStatus"><span class="dot"></span>Loading live auction...</div>
+
+  <section class="live" aria-labelledby="liveTitle">
+    <div class="label" id="liveTitle">Live Now</div>
+    <div class="name" id="lotName">Waiting for auction to start</div>
+    <div class="meta" id="lotMeta">This public board refreshes automatically.</div>
+    <div class="bidline" id="liveMetrics"></div>
+  </section>
+
+  <section class="panel">
+    <h2>League Snapshot</h2>
+    <div class="bidline" id="snapshotMetrics"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Team Standings</h2>
+    <div class="grid" id="teamGrid"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Recent Results</h2>
+    <div class="list" id="recentList"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Available Players</h2>
+    <div class="filters">
+      <select id="poolCatFilter">
+        <option value="">All categories</option>
+        <option>Gold</option>
+        <option>Silver</option>
+        <option>Bronze</option>
+      </select>
+      <input id="poolSearch" type="search" placeholder="Search player">
+    </div>
+    <div class="list" id="poolList"></div>
+  </section>
+</main>
+
+<footer class="site-credit">Created by RamC Venkatasamy, for CPL 2026, Live auction app</footer>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script>
+const RULES = {
+  caps: {Gold:3, Silver:5, Bronze:7},
+  floors: {Gold:15000, Silver:5000, Bronze:3000},
+  totalPurse: 140000,
+};
+const D = window.CPL_DATA;
+const POOL_BY_NAME = Object.fromEntries(D.pool.map(p => [p.player, p]));
+const $ = id => document.getElementById(id);
+let auctionState = normalizeState({});
+let lastOnlineCheckAt = null;
+
+try {
+  const raw = localStorage.getItem('cpl2026_state_v1');
+  if (raw) auctionState = normalizeState(JSON.parse(raw));
+} catch(e) {}
+
+function normalizeState(input) {
+  const s = Object.assign({sold:{}, unsold:{}, log:[], audit:[], currentLot:null, currentBid:null, revision:0, updatedAt:null}, input || {});
+  s.sold = s.sold || {};
+  s.unsold = s.unsold || {};
+  s.log = Array.isArray(s.log) ? s.log : [];
+  s.audit = Array.isArray(s.audit) ? s.audit : [];
+  s.currentBid = s.currentBid || null;
+  rebuildOutcomesFromLog(s);
+  return s;
+}
+
+function rebuildOutcomesFromLog(target=auctionState) {
+  target.sold = {};
+  target.unsold = {};
+  for (const e of target.log || []) {
+    if (!e || e.action === 'void') continue;
+    if (e.action === 'sold') {
+      target.sold[e.player] = {team:e.team, pts:Number(e.pts || 0), ts:e.ts || Date.now(), lot:e.n};
+      delete target.unsold[e.player];
+    } else if (e.action === 'unsold') {
+      target.unsold[e.player] = e.ts || Date.now();
+      delete target.sold[e.player];
+    }
+  }
+}
+
+function poolStatus(player) {
+  if (auctionState.sold[player]) return 'sold';
+  if (auctionState.unsold[player]) return 'unsold';
+  return 'available';
+}
+
+function teamStats(team) {
+  let g=0,s=0,b=0,count=0,spend=0;
+  for (const p of D.retained) {
+    if (p.team !== team || p.status !== 'Retained Registered') continue;
+    count++;
+    spend += Number(p.points || 0);
+    if (p.category === 'Gold') g++;
+    else if (p.category === 'Silver') s++;
+    else if (p.category === 'Bronze') b++;
+  }
+  for (const [pname, sale] of Object.entries(auctionState.sold)) {
+    if (sale.team !== team) continue;
+    count++;
+    spend += Number(sale.pts || 0);
+    const cat = (POOL_BY_NAME[pname] || {}).category;
+    if (cat === 'Gold') g++;
+    else if (cat === 'Silver') s++;
+    else if (cat === 'Bronze') b++;
+  }
+  return {team, g, s, b, count, spend, purse: RULES.totalPurse - spend};
+}
+
+function metric(label, value, sub='') {
+  return `<div class="metric"><div class="k">${label}</div><div class="v">${value}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div>`;
+}
+
+function shortTeam(team) {
+  const labels = {
+    'BLOOM BARWARCHI BULLS': 'BLOOM BULLS',
+    'PARKE REGENCY THALAIVAS': 'PARKE',
+    'CRAFTBARN CHALLENGERS': 'CRAFTBARN',
+    'TECHIE BRAINS': 'TECHIE',
+    'GPT SHERS': 'GPT SHERS',
+    'GNRSYSTEM LIONS': 'GNR LIONS',
+    'BLOOM EVENTS': 'BLOOM EVENTS',
+  };
+  return labels[team] || team || '-';
+}
+
+function renderLive() {
+  const player = auctionState.currentLot;
+  const latest = (auctionState.log || []).filter(e => e.action !== 'void').slice(-1)[0];
+  const online = !!onlineUrl();
+  const auctionUpdate = auctionState.updatedAt ? `auction update ${new Date(auctionState.updatedAt).toLocaleTimeString()}` : 'waiting for update';
+  const checked = lastOnlineCheckAt ? `checked ${new Date(lastOnlineCheckAt).toLocaleTimeString()}` : '';
+  $('onlineStatus').innerHTML = `<span class="dot ${online ? 'ok' : ''}"></span>${online ? 'Live online' : 'Local snapshot'} · ${auctionUpdate}${checked ? ' · ' + checked : ''}`;
+
+  if (player && POOL_BY_NAME[player]) {
+    const p = POOL_BY_NAME[player];
+    const bid = auctionState.currentBid && auctionState.currentBid.player === player ? auctionState.currentBid : null;
+    $('lotName').innerHTML = `${p.player} <span class="pill ${p.category.toLowerCase()}">${p.category}</span>`;
+    $('lotMeta').textContent = [p.role, p.spec].filter(Boolean).join(' · ') || 'Current lot is open';
+    $('liveMetrics').innerHTML = [
+      metric('High Bid', bid ? Number(bid.pts || 0).toLocaleString() : '-', bid ? shortTeam(bid.team) : 'waiting for first bid'),
+      metric('Floor', (RULES.floors[p.category] || 0).toLocaleString(), p.category),
+      metric('Previous Team', p.prev_team || '-', ''),
+      metric('Lot', '#' + ((auctionState.log || []).length + 1), '')
+    ].join('');
+    return;
+  }
+
+  if (latest) {
+    $('lotName').textContent = latest.action === 'sold' ? `${latest.player} sold` : `${latest.player} unsold`;
+    $('lotMeta').textContent = latest.action === 'sold'
+      ? `${latest.team} at ${Number(latest.pts || 0).toLocaleString()}`
+      : 'Waiting for next lot';
+  } else {
+    $('lotName').textContent = 'Waiting for auction to start';
+    $('lotMeta').textContent = 'No current lot yet.';
+  }
+  $('liveMetrics').innerHTML = [
+    metric('Sold', Object.keys(auctionState.sold).length),
+    metric('Unsold', Object.keys(auctionState.unsold).length),
+    metric('Available', D.pool.length - Object.keys(auctionState.sold).length - Object.keys(auctionState.unsold).length),
+    metric('Revision', auctionState.revision || 0)
+  ].join('');
+}
+
+function renderSnapshot() {
+  const sold = Object.keys(auctionState.sold).length;
+  const unsold = Object.keys(auctionState.unsold).length;
+  const totalSpend = Object.values(auctionState.sold).reduce((sum, sale) => sum + Number(sale.pts || 0), 0);
+  $('snapshotMetrics').innerHTML = [
+    metric('Teams', D.teams.length),
+    metric('Pool Available', D.pool.length - sold - unsold, `of ${D.pool.length}`),
+    metric('Sold', sold),
+    metric('Auction Spend', totalSpend.toLocaleString())
+  ].join('');
+}
+
+function renderTeams() {
+  $('teamGrid').innerHTML = D.teams.map(team => {
+    const s = teamStats(team);
+    return `<div class="team-card">
+      <div class="team">${shortTeam(team)}</div>
+      <div class="purse">${s.purse.toLocaleString()}</div>
+      <div class="split">
+        <span class="pill gold">${s.g}/${RULES.caps.Gold} G</span>
+        <span class="pill silver">${s.s}/${RULES.caps.Silver} S</span>
+        <span class="pill bronze">${s.b}/${RULES.caps.Bronze} B</span>
+      </div>
+      <div class="sub" style="margin-top:7px;color:var(--mute)">${s.count}/15 players</div>
+    </div>`;
+  }).join('');
+}
+
+function renderRecent() {
+  const rows = (auctionState.log || []).filter(e => e && e.action !== 'void').slice(-8).reverse();
+  if (!rows.length) {
+    $('recentList').innerHTML = '<div class="row-card"><div><div class="title">No results yet</div><div class="sub">Sold and unsold lots will appear here.</div></div></div>';
+    return;
+  }
+  $('recentList').innerHTML = rows.map(e => {
+    if (e.action === 'unsold') {
+      return `<div class="row-card"><div><div class="title">${e.player}</div><div class="sub">Unsold</div></div><span class="pill warn">UNSOLD</span></div>`;
+    }
+    return `<div class="row-card"><div><div class="title">${e.player}</div><div class="sub">${shortTeam(e.team)}</div></div><div class="amount">${Number(e.pts || 0).toLocaleString()}</div></div>`;
+  }).join('');
+}
+
+function renderPool() {
+  const cat = $('poolCatFilter').value;
+  const q = $('poolSearch').value.toLowerCase();
+  const rows = D.pool.filter(p => poolStatus(p.player) === 'available')
+    .filter(p => !cat || p.category === cat)
+    .filter(p => !q || p.player.toLowerCase().includes(q))
+    .slice(0, 24);
+  if (!rows.length) {
+    $('poolList').innerHTML = '<div class="row-card"><div><div class="title">No available players match</div></div></div>';
+    return;
+  }
+  $('poolList').innerHTML = rows.map(p => `<div class="row-card">
+    <div><div class="title">${p.player}</div><div class="sub">${[p.role, p.spec].filter(Boolean).join(' · ') || 'Available'}</div></div>
+    <span class="pill ${p.category.toLowerCase()}">${p.category}</span>
+  </div>`).join('');
+}
+
+function renderAll() {
+  renderLive();
+  renderSnapshot();
+  renderTeams();
+  renderRecent();
+  renderPool();
+}
+
+function onlineUrl() {
+  return ((window.CPL_CONFIG || {}).APPS_SCRIPT_URL || '').trim();
+}
+
+function jsonp(url, params={}, timeoutMs=10000) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cplPublicPageJsonp_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('Timed out'));
+    }, timeoutMs);
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cb];
+      script.remove();
+    }
+    window[cb] = data => {
+      cleanup();
+      resolve(data);
+    };
+    const u = new URL(url);
+    u.searchParams.set('callback', cb);
+    u.searchParams.set('_', Date.now());
+    for (const [k,v] of Object.entries(params)) u.searchParams.set(k, v);
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('Could not load online state'));
+    };
+    script.src = u.toString();
+    document.body.appendChild(script);
+  });
+}
+
+async function loadOnlineState(force=false) {
+  const url = onlineUrl();
+  if (!url) return;
+  try {
+    const data = await jsonp(url, {action:'state'});
+    if (!data.ok || !data.state) throw new Error(data.error || 'Invalid online state');
+    lastOnlineCheckAt = data.serverTime || new Date().toISOString();
+    const next = normalizeState(data.state);
+    if (force || Number(next.revision || 0) >= Number(auctionState.revision || 0)) {
+      auctionState = next;
+      localStorage.setItem('cpl2026_state_v1', JSON.stringify(auctionState));
+      renderAll();
+    }
+  } catch (err) {
+    $('onlineStatus').innerHTML = '<span class="dot"></span>Online refresh failed · showing last snapshot';
+  }
+}
+
+$('poolCatFilter').addEventListener('input', renderPool);
+$('poolSearch').addEventListener('input', renderPool);
+renderAll();
+loadOnlineState(true);
+if (onlineUrl()) setInterval(loadOnlineState, 3000);
+</script>
+</body>
+</html>

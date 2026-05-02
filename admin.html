@@ -87,6 +87,7 @@
   <div class="sync-pill" id="syncPill">Local only</div>
   <div class="nav">
     <a href="rules.html">Rules</a>
+    <a href="public.html">Public View</a>
     <a href="index.html">Owner View</a>
     <a href="#" id="exportBtn">Export JSON</a>
     <a href="#" id="importBtn">Import</a>
@@ -260,6 +261,7 @@ function defaultState() {
     log: [],         // [{n, player, team, pts, action, ts}]
     audit: [],       // correction/undo/reset trail
     currentLot: null,
+    currentBid: null,
     revision: 0,
     updatedAt: null,
   };
@@ -271,6 +273,7 @@ function normalizeState(input) {
   s.unsold = s.unsold || {};
   s.log = Array.isArray(s.log) ? s.log : [];
   s.audit = Array.isArray(s.audit) ? s.audit : [];
+  s.currentBid = s.currentBid || null;
   if (typeof s.revision !== 'number') s.revision = Number(s.revision || 0);
   rebuildOutcomesFromLog(s);
   return s;
@@ -517,6 +520,10 @@ function renderLot() {
     <div class="stat-card"><div class="k">Status</div><div class="v">${poolStatus(player)}</div></div>
     <div class="stat-card"><div class="k">Lot #</div><div class="v">${state.log.length + 1}</div></div>`;
   $('floorHint').textContent = `(min ${floor.toLocaleString()})`;
+  if (state.currentBid && state.currentBid.player === player) {
+    $('winTeam').value = state.currentBid.team || '';
+    $('soldPts').value = state.currentBid.pts || '';
+  }
   // refresh win team eligibility
   refreshTeamSelect();
   validateBidUI();
@@ -544,6 +551,11 @@ function maxLegalBidForTeam(team, category, previousPts=0) {
     guard++;
   }
   return Object.assign({}, maxInfo, {legalMax});
+}
+
+function legalMaxBidLabel(team, category, previousPts=0) {
+  const info = maxLegalBidForTeam(team, category, previousPts);
+  return info.legalMax ? info.legalMax.toLocaleString() : 'No bid';
 }
 
 function renderBidPad() {
@@ -615,10 +627,11 @@ function refreshTeamSelect() {
   const floor = RULES.floors[cat] || 0;
   for (const t of D.teams) {
     const maxInfo = maxBidForCategory(t, cat);
+    const legal = maxLegalBidForTeam(t, cat);
     const o = document.createElement('option');
     o.value = t;
     const eligible = maxInfo.ok && maxInfo.max >= floor;
-    const status = eligible ? `max ${maxInfo.max.toLocaleString()}` : `🚫 ${maxInfo.msg}`;
+    const status = eligible ? `legal max ${Number(legal.legalMax || 0).toLocaleString()}` : `🚫 ${maxInfo.msg}`;
     o.textContent = `${t}  · ${status}`;
     if (!eligible) o.disabled = true;
     sel.appendChild(o);
@@ -693,6 +706,7 @@ function renderAll() {
 function setLot(player) {
   if (poolStatus(player) !== 'available' && !confirm(`${player} is already ${poolStatus(player)}. Open it as current lot anyway?`)) return;
   state.currentLot = player;
+  state.currentBid = null;
   bidHistory = [];
   $('soldPts').value = '';
   $('winTeam').value = '';
@@ -748,8 +762,9 @@ function applyTeamBid(team) {
   bidHistory.push({team: previousTeam, pts: previousPts});
   $('winTeam').value = team;
   $('soldPts').value = next;
+  state.currentBid = {player: state.currentLot, team, pts: next, ts: Date.now()};
   $('okMsg').textContent = `Bid: ${bidTeamLabel(team)} @ ${next.toLocaleString()}`;
-  validateBidUI();
+  commitState('bid');
 }
 
 function undoCurrentBid() {
@@ -757,19 +772,23 @@ function undoCurrentBid() {
   const prev = bidHistory.pop();
   $('winTeam').value = prev.team || '';
   $('soldPts').value = prev.pts || '';
+  state.currentBid = prev.team && prev.pts
+    ? {player: state.currentLot, team: prev.team, pts: Number(prev.pts), ts: Date.now()}
+    : null;
   $('okMsg').textContent = prev.team && prev.pts
     ? `Bid back to ${bidTeamLabel(prev.team)} @ ${Number(prev.pts).toLocaleString()}`
     : 'Bid cleared';
-  validateBidUI();
+  commitState('bid undo');
 }
 
 function resetCurrentBid() {
   bidHistory = [];
   $('winTeam').value = '';
   $('soldPts').value = '';
+  state.currentBid = null;
   $('bidErr').textContent = '';
   $('okMsg').textContent = 'Current lot bid reset';
-  validateBidUI();
+  commitState('bid reset');
 }
 
 function manualBidEdited() {
@@ -793,6 +812,7 @@ function commitSale() {
   state.log.push({n: state.log.length+1, player, team, pts, action:'sold', ts: Date.now()});
   addAudit('sold', `${player} -> ${team} @ ${pts}`);
   state.currentLot = null;
+  state.currentBid = null;
   bidHistory = [];
   commitState('sold');
   $('okMsg').textContent = `✓ ${player} → ${team} @ ${pts.toLocaleString()}`;
@@ -804,6 +824,7 @@ function markUnsold() {
   state.log.push({n: state.log.length+1, player, action:'unsold', ts: Date.now()});
   addAudit('unsold', player);
   state.currentLot = null;
+  state.currentBid = null;
   bidHistory = [];
   commitState('unsold');
   $('okMsg').textContent = `${player} marked UNSOLD`;
@@ -921,6 +942,7 @@ function resetAll() {
 
 function clearCurrentLot() {
   state.currentLot = null;
+  state.currentBid = null;
   bidHistory = [];
   $('winTeam').value = '';
   $('soldPts').value = '';

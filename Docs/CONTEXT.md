@@ -41,7 +41,7 @@ Cricket Auction/
 
 **Data flow.** `data.js` defines `window.CPL_DATA` containing teams, retained roster, auction pool, and rules. Both `admin.html` and `index.html` read it on load.
 
-**State flow.** The console writes auction outcomes to `localStorage` under key `cpl2026_state_v1`. If `config.js` has an Apps Script Web App URL and the conductor enters the admin key, the console also publishes state to a Google Sheet through Apps Script. The public dashboard polls the Web App URL every few seconds.
+**State flow.** The console writes auction outcomes and the current high bid to `localStorage` under key `cpl2026_state_v1`. If `config.js` has an Apps Script Web App URL and the conductor enters the admin key, the console also publishes state to a Google Sheet through Apps Script. The owner dashboard and public spectator page poll the Web App URL every few seconds.
 
 **Backend.** Lightweight Google Sheet/App Script bridge only. Single-admin model. Each admin push writes the machine-readable `State` tab plus readable `Auction Log`, `League Summary`, `Player Pool`, and one tab per team.
 
