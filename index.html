@@ -241,6 +241,7 @@ const RULES = {
 };
 
 let auctionState = {sold:{}, unsold:{}, log:[], audit:[], currentLot:null, revision:0, updatedAt:null};
+let lastOnlineCheckAt = null;
 const D = window.CPL_DATA;
 const POOL_BY_NAME = Object.fromEntries(D.pool.map(p => [p.player, p]));
 const $ = id => document.getElementById(id);
@@ -367,7 +368,9 @@ function renderLiveLot() {
   const player = auctionState.currentLot;
   const latest = (auctionState.log || []).filter(e => e.action !== 'void').slice(-1)[0];
   const online = !!((window.CPL_CONFIG || {}).APPS_SCRIPT_URL || '').trim();
-  $('onlineStatus').innerHTML = `<span class="status-dot ${online ? 'ok' : ''}"></span>${online ? 'Live online' : 'Local snapshot'}${auctionState.updatedAt ? ' · updated ' + new Date(auctionState.updatedAt).toLocaleTimeString() : ''}`;
+  const auctionUpdate = auctionState.updatedAt ? ` · auction update ${new Date(auctionState.updatedAt).toLocaleTimeString()}` : '';
+  const checked = lastOnlineCheckAt ? ` · checked ${new Date(lastOnlineCheckAt).toLocaleTimeString()}` : '';
+  $('onlineStatus').innerHTML = `<span class="status-dot ${online ? 'ok' : ''}"></span>${online ? 'Live online' : 'Local snapshot'}${auctionUpdate}${checked}`;
 
   if (player && POOL_BY_NAME[player]) {
     const p = POOL_BY_NAME[player];
@@ -551,6 +554,7 @@ async function loadOnlineState(force=false) {
   try {
     const data = await jsonp(url, {action:'state'});
     if (!data.ok || !data.state) throw new Error(data.error || 'Invalid online state');
+    lastOnlineCheckAt = data.serverTime || new Date().toISOString();
     const next = normalizeState(data.state);
     if (force || Number(next.revision || 0) >= Number(auctionState.revision || 0)) {
       auctionState = next;
