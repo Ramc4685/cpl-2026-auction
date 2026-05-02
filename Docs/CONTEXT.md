@@ -50,11 +50,10 @@ Cricket Auction/
 | Rule | Value |
 |---|---|
 | Total team purse | 140,000 (120k base + 20k extra) |
-| Min roster | 11 |
-| Max roster | 15 |
-| Max Gold per team | 3 |
-| Max Silver per team | 5 |
-| Max Bronze per team | 7 |
+| Required roster | 15 |
+| Required Gold per team | 3 |
+| Required Silver per team | 5 |
+| Required Bronze per team | 7 |
 | Gold floor | 20,000 |
 | Silver floor | 10,000 |
 | Bronze floor | 4,000 |
@@ -80,14 +79,14 @@ Bid increments:
 | RTM | OFF | Simpler. Highest bid wins. |
 | Tie-break | Admin call is final | Verbal auction can't have true ties. |
 | Undo | Last lot only, both teams agree | Avoids cascading rollbacks. |
-| Unsold | Round 2 at floor → release | Standard auction practice. |
+| Unsold | Round 2 at floor | Keeps the process simple while preserving available-player status. |
 
 ## Auction-day workflow
 
 1. Open `admin.html` on laptop (you).
 2. Share screen on Zoom. Owners can also open `index.html` (read-only).
 3. Per lot: pick player → enter winning team + price → SOLD or UNSOLD.
-4. Console enforces cap, roster, floor, purse, reserve.
+4. Console enforces exact category targets, roster, floor, purse, and required-slot reserve.
 5. Owners/spectators watch `index.html`, which updates live from Apps Script.
 6. Export JSON every ~10 lots and post-auction as a backup archive.
 
@@ -95,7 +94,7 @@ Bid increments:
 
 - [ ] Print `rules.html` as PDF, send to owners 24h before.
 - [ ] Test `admin.html` with 3 mock lots end-to-end.
-- [ ] Confirm `MIN_ROSTER = 11` (hardcoded in admin.html + index.html).
+- [ ] Confirm roster/category targets: 15 players, exactly 3 Gold, 5 Silver, 7 Bronze.
 - [ ] Verify all owner names + team mappings in `data.js`.
 - [ ] Test on mobile (Zoom side-by-side with dashboard).
 - [ ] Configure Apps Script Web App URL in `config.js`.

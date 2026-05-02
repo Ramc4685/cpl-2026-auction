@@ -39,18 +39,17 @@
   <h1>CPL 2026 — Auction Rules</h1>
   <div class="sub">Final rules. One page. No exceptions on auction day.</div>
 
-  <h2>1. Team purse &amp; roster caps</h2>
+  <h2>1. Team purse &amp; roster requirements</h2>
   <div class="card">
     <table>
       <tr><th>Item</th><th class="num">Value</th></tr>
       <tr><td>Base team points</td><td class="num">120,000</td></tr>
       <tr><td>Auction extra points</td><td class="num">20,000</td></tr>
       <tr><td><b>Total team purse</b></td><td class="num"><b>140,000</b></td></tr>
-      <tr><td>Min roster size (must reach)</td><td class="num">11</td></tr>
-      <tr><td>Max roster size</td><td class="num">15</td></tr>
-      <tr><td>Max <span class="pill gold">Gold</span> per team</td><td class="num">3</td></tr>
-      <tr><td>Max <span class="pill silver">Silver</span> per team</td><td class="num">5</td></tr>
-      <tr><td>Max <span class="pill bronze">Bronze</span> per team</td><td class="num">7</td></tr>
+      <tr><td>Required roster size</td><td class="num">15</td></tr>
+      <tr><td>Required <span class="pill gold">Gold</span> per team</td><td class="num">3</td></tr>
+      <tr><td>Required <span class="pill silver">Silver</span> per team</td><td class="num">5</td></tr>
+      <tr><td>Required <span class="pill bronze">Bronze</span> per team</td><td class="num">7</td></tr>
     </table>
   </div>
 
@@ -81,11 +80,12 @@
   <div class="card">
     <ol>
       <li>Team has remaining purse ≥ current bid.</li>
-      <li>Team has reserved enough purse to fill min-roster at floor for remaining slots.</li>
-      <li>Team is not at category cap (no 4th Gold, 6th Silver, 8th Bronze).</li>
-      <li>Team is not at roster max (15).</li>
+      <li>Team still needs a player in the current lot category.</li>
+      <li>Team has reserved enough purse at category floors to complete all remaining required slots after this bid.</li>
+      <li>Team has not completed the required 15-player roster.</li>
+      <li>No team may finish outside the required 3 Gold, 5 Silver, 7 Bronze split.</li>
     </ol>
-    <div class="sub" style="margin:8px 0 0">Console enforces this automatically. Owner is responsible for verifying before raising hand.</div>
+    <div class="sub" style="margin:8px 0 0">Example: if a team still needs 1 Gold, 1 Silver, and 1 Bronze with 50,000 purse, its max Gold bid is 36,000 because 10,000 + 4,000 must remain reserved for Silver and Bronze floors.</div>
   </div>
 
   <h2>5. Auction procedure (per lot)</h2>

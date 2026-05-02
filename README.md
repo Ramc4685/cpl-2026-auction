@@ -58,7 +58,7 @@ URL becomes `https://<you>.github.io/cpl-2026-auction/`.
 
 1. Confirm latest player/category sheet has 44 players and no Unknown category players.
 2. Confirm bid floors and increments in `rules.html`.
-3. Confirm `MIN_ROSTER` = 11 (edit `RULES.roster.min` in `admin.html` and `index.html` if different).
+3. Confirm roster/category targets: 15 players per team, exactly 3 Gold, 5 Silver, and 7 Bronze.
 4. Test on mobile + desktop.
 5. Print `rules.html` as PDF and share with owners.
 
@@ -71,7 +71,7 @@ Re-run the Python conversion script (see `AUDIT.md` for the source workbook fiel
 1. Open `admin.html` on your laptop. Keep it open.
 2. Share `index.html` GitHub Pages URL with owners/spectators.
 3. For each lot: pick player → enter winning team + price → SOLD / UNSOLD.
-4. Console enforces: category cap, roster cap, purse, floor, reserve, increment format.
+4. Console enforces: exact category targets, 15-player roster, purse, floor, required-slot reserve, increment format.
 5. If a mistake happens, use Undo Last for the most recent lot, or Correction Desk for older lots.
 6. Watch the sync pill in the header. It should show `Online saved` after each admin action.
 7. Export JSON at breaks and after the auction as a backup archive.

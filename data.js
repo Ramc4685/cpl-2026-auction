@@ -13,7 +13,7 @@ window.CPL_DATA = {
       "Bronze": 4000
     }
   },
-  "min_roster": 11,
+  "min_roster": 15,
   "teams": [
     "BLOOM BARWARCHI BULLS",
     "PARKE REGENCY THALAIVAS",

@@ -32,7 +32,7 @@
   td.num{text-align:right;font-variant-numeric:tabular-nums}
   #teamsTable{table-layout:fixed}
   #teamsTable th,#teamsTable td{vertical-align:middle}
-  #teamsTable th:first-child,#teamsTable td:first-child{width:34%;text-align:left}
+  #teamsTable th:first-child,#teamsTable td:first-child{width:30%;text-align:left}
   #teamsTable th:not(:first-child),#teamsTable td:not(:first-child){text-align:center}
   #teamsTable th.money,#teamsTable td.money{text-align:right}
   #teamsTable .team-name{font-size:14px;line-height:1.25;letter-spacing:0}
@@ -155,7 +155,7 @@
       <h2>Teams Standing</h2>
       <div class="scroll">
         <table id="teamsTable"><thead>
-          <tr><th>Team</th><th class="money">Purse</th><th class="money">Spent</th><th>Gold</th><th>Silver</th><th>Bronze</th><th>Total</th><th>Slots Left</th></tr>
+          <tr><th>Team</th><th class="money">Purse</th><th class="money">Spent</th><th>Gold</th><th>Silver</th><th>Bronze</th><th>Total</th><th>Slots Left</th><th class="money">Max Bid</th></tr>
         </thead><tbody></tbody></table>
       </div>
     </div>
@@ -171,9 +171,9 @@
       <h2 id="teamName"></h2>
       <div class="grid">
         <div class="stat"><div class="k">Purse Remaining</div><div class="v" id="t_purse"></div><div class="sub" id="t_spent"></div></div>
-        <div class="stat"><div class="k">Roster</div><div class="v" id="t_roster"></div><div class="sub">of 15 max · min 11</div></div>
-        <div class="stat"><div class="k">Must Buy (min)</div><div class="v" id="t_mustbuy"></div><div class="sub">to reach 11 players</div></div>
-        <div class="stat"><div class="k">Max Bid Right Now</div><div class="v" id="t_maxbid"></div><div class="sub">after reserve</div></div>
+        <div class="stat"><div class="k">Roster</div><div class="v" id="t_roster"></div><div class="sub">of 15 required</div></div>
+        <div class="stat"><div class="k">Required Slots</div><div class="v" id="t_mustbuy"></div><div class="sub">to complete 3G / 5S / 7B</div></div>
+        <div class="stat"><div class="k">Max Bid Current Lot</div><div class="v" id="t_maxbid"></div><div class="sub" id="t_maxbid_sub">waiting for live lot</div></div>
       </div>
     </div>
 
@@ -235,7 +235,7 @@
 <script>
 const RULES = {
   caps: {Gold:3, Silver:5, Bronze:7},
-  roster: {min:11, max:15},
+  roster: {min:15, max:15},
   floors: {Gold:20000, Silver:10000, Bronze:4000},
   totalPurse: 140000,
 };
@@ -293,12 +293,47 @@ function teamStats(team) {
     if(cat==='Gold') g++; else if(cat==='Silver') s++; else if(cat==='Bronze') b++;
   }
   const purse = RULES.totalPurse - spend;
-  const mustBuy = Math.max(0, RULES.roster.min - count);
-  // max bid: purse minus reserve for remaining must-buy slots
-  const otherSlots = Math.max(0, mustBuy - 1);
-  const reserve = otherSlots * RULES.floors.Bronze;
-  const maxBid = Math.max(0, purse - reserve);
-  return {team, g, s, b, count, spend, purse, retained, bought, mustBuy, maxBid};
+  return {team, g, s, b, count, spend, purse, retained, bought};
+}
+
+function categoryNeeds(stats, boughtCategory=null) {
+  const needs = {
+    Gold: Math.max(0, RULES.caps.Gold - stats.g),
+    Silver: Math.max(0, RULES.caps.Silver - stats.s),
+    Bronze: Math.max(0, RULES.caps.Bronze - stats.b),
+  };
+  if (boughtCategory && needs[boughtCategory] > 0) needs[boughtCategory]--;
+  return needs;
+}
+
+function totalNeed(needs) {
+  return Object.values(needs).reduce((sum, n) => sum + Number(n || 0), 0);
+}
+
+function reserveForNeeds(needs) {
+  return Object.entries(needs).reduce((sum, [cat, slots]) => sum + slots * (RULES.floors[cat] || 0), 0);
+}
+
+function currentLotCategory() {
+  const player = auctionState.currentLot;
+  return player && POOL_BY_NAME[player] ? POOL_BY_NAME[player].category : null;
+}
+
+function maxBidForCategory(teamOrStats, category) {
+  const stats = typeof teamOrStats === 'string' ? teamStats(teamOrStats) : teamOrStats;
+  const needs = categoryNeeds(stats);
+  if (!category) return {ok:false, max:null, reserve:reserveForNeeds(needs), needs, msg:'Waiting for live lot'};
+  if (!needs[category]) return {ok:false, max:0, reserve:reserveForNeeds(needs), needs, msg:`No ${category} slot needed`};
+  const remainingNeeds = categoryNeeds(stats, category);
+  const reserve = reserveForNeeds(remainingNeeds);
+  const max = Math.max(0, stats.purse - reserve);
+  const floor = RULES.floors[category] || 0;
+  return {ok:max >= floor, max, reserve, needs:remainingNeeds, msg:max >= floor ? '' : `Max ${category} bid is ${max.toLocaleString()}, below floor ${floor.toLocaleString()} after reserving ${reserve.toLocaleString()}`};
+}
+
+function maxBidLabel(maxInfo, category) {
+  if (!category || maxInfo.max === null) return '—';
+  return maxInfo.ok ? maxInfo.max.toLocaleString() : 'No bid';
 }
 
 function poolStatus(player){
@@ -325,9 +360,12 @@ function renderOverview() {
 
   const tbody = $('teamsTable').querySelector('tbody');
   tbody.innerHTML = '';
+  const lotCategory = currentLotCategory();
   for (const t of totals) {
     const tr = document.createElement('tr');
     const purseClass = t.purse < 5000 ? 'pill bad' : t.purse < 20000 ? 'pill warn' : 'pill ok';
+    const maxInfo = maxBidForCategory(t, lotCategory);
+    const maxBidText = maxBidLabel(maxInfo, lotCategory);
     tr.innerHTML = `
       <td data-label="Team"><b class="team-name">${t.team}</b></td>
       <td data-label="Purse" class="money"><span class="${purseClass} money-pill">${t.purse.toLocaleString()}</span></td>
@@ -336,7 +374,8 @@ function renderOverview() {
       <td data-label="Silver">${catMeter('silver', t.s, RULES.caps.Silver)}</td>
       <td data-label="Bronze">${catMeter('bronze', t.b, RULES.caps.Bronze)}</td>
       <td data-label="Total">${t.count}/15</td>
-      <td data-label="Slots Left">${15-t.count}</td>`;
+      <td data-label="Slots Left">${Math.max(0, 15-t.count)}</td>
+      <td data-label="${lotCategory ? `Max ${lotCategory}` : 'Max Bid'}" class="money">${maxBidText}</td>`;
     tbody.appendChild(tr);
   }
 
@@ -405,8 +444,8 @@ function renderLiveLot() {
   $('liveLotStats').innerHTML = `
     <div class="stat"><div class="k">Pool</div><div class="v">${D.pool.length}</div></div>
     <div class="stat"><div class="k">Teams</div><div class="v">${D.teams.length}</div></div>
-    <div class="stat"><div class="k">Roster Min</div><div class="v">${RULES.roster.min}</div></div>
-    <div class="stat"><div class="k">Roster Max</div><div class="v">${RULES.roster.max}</div></div>`;
+    <div class="stat"><div class="k">Roster Required</div><div class="v">${RULES.roster.max}</div></div>
+    <div class="stat"><div class="k">Category Split</div><div class="v">3 / 5 / 7</div></div>`;
 }
 
 function renderTeam(team) {
@@ -414,9 +453,17 @@ function renderTeam(team) {
   $('teamName').textContent = team;
   $('t_purse').textContent = t.purse.toLocaleString();
   $('t_spent').textContent = `Spent: ${t.spend.toLocaleString()} of ${RULES.totalPurse.toLocaleString()}`;
-  $('t_roster').textContent = `${t.count}`;
-  $('t_mustbuy').textContent = t.mustBuy;
-  $('t_maxbid').textContent = t.maxBid.toLocaleString();
+  $('t_roster').textContent = `${t.count}/15`;
+  const needs = categoryNeeds(t);
+  $('t_mustbuy').textContent = totalNeed(needs);
+  const lotCategory = currentLotCategory();
+  const maxInfo = maxBidForCategory(t, lotCategory);
+  $('t_maxbid').textContent = maxBidLabel(maxInfo, lotCategory);
+  $('t_maxbid_sub').textContent = lotCategory
+    ? (maxInfo.ok
+      ? `${lotCategory} lot · reserves ${maxInfo.reserve.toLocaleString()} for required slots`
+      : maxInfo.msg)
+    : 'waiting for live lot';
 
   // category breakdown bars
   $('catBreakdown').innerHTML = ['Gold','Silver','Bronze'].map(c => {
@@ -430,17 +477,15 @@ function renderTeam(team) {
   }).join('');
 
   // watchlist math
-  const slotsLeft = RULES.roster.max - t.count;
-  const minSlots = t.mustBuy;
-  const minCost = (RULES.caps.Gold-t.g)*0 + minSlots*RULES.floors.Bronze;
-  const maxCost = t.purse;
-  $('watchMath').innerHTML = `
-    <tr><td>Min slots to play</td><td class="num">${minSlots}</td><td class="num">${(minSlots*RULES.floors.Bronze).toLocaleString()}</td></tr>
-    <tr><td>Up to roster max</td><td class="num">${slotsLeft}</td><td class="num">${(slotsLeft*RULES.floors.Bronze).toLocaleString()}</td></tr>
-    <tr><td>Avg per remaining slot</td><td class="num">${slotsLeft || '—'}</td><td class="num">${slotsLeft ? Math.floor(t.purse/slotsLeft).toLocaleString() : '—'}</td></tr>`;
-  $('watchNote').textContent = t.mustBuy === 0
-    ? `Already at min roster. Buying is optional up to ${slotsLeft} more slots.`
-    : `Must buy at least ${t.mustBuy} more player(s) to reach minimum roster of 11.`;
+  $('watchMath').innerHTML = ['Gold','Silver','Bronze'].map(c => `
+    <tr><td><span class="pill ${c.toLowerCase()}">${c}</span></td><td class="num">${needs[c]}</td><td class="num">${(needs[c] * RULES.floors[c]).toLocaleString()}</td></tr>
+  `).join('') + `
+    <tr><td><b>Total required reserve</b></td><td class="num"><b>${totalNeed(needs)}</b></td><td class="num"><b>${reserveForNeeds(needs).toLocaleString()}</b></td></tr>`;
+  $('watchNote').textContent = lotCategory
+    ? (maxInfo.ok
+      ? `For this ${lotCategory} lot, max bid is ${maxInfo.max.toLocaleString()} after reserving ${maxInfo.reserve.toLocaleString()} for the remaining required category slots.`
+      : maxInfo.msg)
+    : `Waiting for a live lot. Max bid will be calculated against the current player's category.`;
 
   // retained roster
   const rb = $('retainedTable').querySelector('tbody');

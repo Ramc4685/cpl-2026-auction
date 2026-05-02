@@ -120,6 +120,7 @@
     <label>Sold Points <span class="small" id="floorHint"></span></label>
     <input id="soldPts" type="number" placeholder="e.g. 5000" inputmode="numeric">
     <div class="err" id="bidErr"></div>
+    <div class="inline-note" id="maxBidHint"></div>
     <div class="bigprice" id="bigPrice">—</div>
     <div class="row">
       <button id="sellBtn" class="ok">SOLD ✓</button>
@@ -179,7 +180,7 @@
       </thead><tbody></tbody></table>
     </div>
     <div class="small" style="margin-top:10px">
-      Caps: G=3 S=5 B=7 · Roster=15 · Min=11
+      Required: G=3 S=5 B=7 · Roster=15
     </div>
     <hr>
     <h2>Online Sync</h2>
@@ -217,7 +218,7 @@ const ADMIN_KEY_KEY = 'cpl2026_admin_key';
 
 const RULES = {
   caps: {Gold: 3, Silver: 5, Bronze: 7},
-  roster: {min: 11, max: 15},
+  roster: {min: 15, max: 15},
   floors: {Gold: 20000, Silver: 10000, Bronze: 4000},
   totalPurse: 140000,
 };
@@ -312,7 +313,7 @@ function teamStats(team, sourceState=state) {
     else if (p.category === 'Bronze') b++;
   }
   // add auction sold
-  for (const [pname, sale] of Object.entries(state.sold)) {
+  for (const [pname, sale] of Object.entries(sourceState.sold || {})) {
     if (sale.team !== team) continue;
     count++;
     spend += Number(sale.pts || 0);
@@ -322,6 +323,34 @@ function teamStats(team, sourceState=state) {
     else if (cat === 'Bronze') b++;
   }
   return {team, g, s, b, count, spend, purse: RULES.totalPurse - spend};
+}
+
+function categoryNeeds(stats, boughtCategory=null) {
+  const needs = {
+    Gold: Math.max(0, RULES.caps.Gold - stats.g),
+    Silver: Math.max(0, RULES.caps.Silver - stats.s),
+    Bronze: Math.max(0, RULES.caps.Bronze - stats.b),
+  };
+  if (boughtCategory && needs[boughtCategory] > 0) needs[boughtCategory]--;
+  return needs;
+}
+
+function reserveForNeeds(needs) {
+  return Object.entries(needs).reduce((sum, [cat, slots]) => sum + slots * (RULES.floors[cat] || 0), 0);
+}
+
+function maxBidForCategory(team, category, sourceState=state) {
+  const stats = teamStats(team, sourceState);
+  const needs = categoryNeeds(stats);
+  if (!needs[category]) return {ok:false, max:0, reserve:reserveForNeeds(needs), msg:`${team} does not need ${category}`};
+  const remainingNeeds = categoryNeeds(stats, category);
+  const reserve = reserveForNeeds(remainingNeeds);
+  const max = Math.max(0, stats.purse - reserve);
+  const floor = RULES.floors[category] || 0;
+  if (max < floor) {
+    return {ok:false, max, reserve, msg:`Max ${category} bid is ${max.toLocaleString()}, below floor ${floor.toLocaleString()} after reserving ${reserve.toLocaleString()}`};
+  }
+  return {ok:true, max, reserve, needs:remainingNeeds};
 }
 
 function incrementValid(pts) {
@@ -334,28 +363,22 @@ function incrementValid(pts) {
 
 function bidValid(team, pts, category, sourceState=state) {
   const t = teamStats(team, sourceState);
-  // 1. category cap
+  // 1. exact category target
   const capMap = {Gold:t.g, Silver:t.s, Bronze:t.b};
   const cap = RULES.caps[category];
   if (cap !== undefined && capMap[category] >= cap) {
-    return {ok:false, msg:`${team} at ${category} cap (${cap})`};
+    return {ok:false, msg:`${team} already has required ${category} (${cap})`};
   }
-  // 2. roster cap
-  if (t.count >= RULES.roster.max) return {ok:false, msg:`${team} at roster max (15)`};
+  // 2. roster target
+  if (t.count >= RULES.roster.max) return {ok:false, msg:`${team} already has required roster (15)`};
   // 3. floor
   const floor = RULES.floors[category] || 0;
   if (pts < floor) return {ok:false, msg:`Below ${category} floor (${floor})`};
   if (!incrementValid(pts)) return {ok:false, msg:'Does not match bid increment ladder'};
-  // 4. purse
-  if (pts > t.purse) return {ok:false, msg:`Exceeds purse (${t.purse} left)`};
-  // 5. reserve enough for min roster
-  const slotsAfter = t.count + 1;
-  const slotsToMin = Math.max(0, RULES.roster.min - slotsAfter);
-  const minFloor = Math.min(...Object.values(RULES.floors)); // bronze floor
-  const reserveNeeded = slotsToMin * minFloor;
-  if ((t.purse - pts) < reserveNeeded) {
-    return {ok:false, msg:`Reserve needed ${reserveNeeded} for ${slotsToMin} more slots`};
-  }
+  // 4. purse and required category-slot reserve
+  const maxInfo = maxBidForCategory(team, category, sourceState);
+  if (!maxInfo.ok) return {ok:false, msg:maxInfo.msg};
+  if (pts > maxInfo.max) return {ok:false, msg:`Max ${category} bid is ${maxInfo.max.toLocaleString()} after reserving ${maxInfo.reserve.toLocaleString()}`};
   return {ok:true};
 }
 
@@ -453,17 +476,15 @@ function refreshTeamSelect() {
   sel.innerHTML = '<option value="">-- select team --</option>';
   if (!state.currentLot) return;
   const cat = POOL_BY_NAME[state.currentLot].category;
+  const floor = RULES.floors[cat] || 0;
   for (const t of D.teams) {
-    const s = teamStats(t);
-    const capMap = {Gold:s.g, Silver:s.s, Bronze:s.b};
-    const cap = RULES.caps[cat];
-    const atCap = cap !== undefined && capMap[cat] >= cap;
-    const atRoster = s.count >= RULES.roster.max;
+    const maxInfo = maxBidForCategory(t, cat);
     const o = document.createElement('option');
     o.value = t;
-    const status = atRoster ? '🚫roster' : atCap ? `🚫${cat[0]}` : `${s.purse.toLocaleString()}`;
+    const eligible = maxInfo.ok && maxInfo.max >= floor;
+    const status = eligible ? `max ${maxInfo.max.toLocaleString()}` : `🚫 ${maxInfo.msg}`;
     o.textContent = `${t}  · ${status}`;
-    if (atCap || atRoster) o.disabled = true;
+    if (!eligible) o.disabled = true;
     sel.appendChild(o);
   }
   if (cur) sel.value = cur;
@@ -539,6 +560,7 @@ function setLot(player) {
   $('soldPts').value = '';
   $('winTeam').value = '';
   $('bidErr').textContent = '';
+  $('maxBidHint').textContent = '';
   $('okMsg').textContent = '';
   $('bigPrice').textContent = '—';
   commitState('current lot');
@@ -548,8 +570,16 @@ function validateBidUI() {
   const team = $('winTeam').value;
   const pts = Number($('soldPts').value || 0);
   $('bigPrice').textContent = pts ? pts.toLocaleString() : '—';
-  if (!state.currentLot || !team || !pts) { $('bidErr').textContent = ''; return; }
+  $('maxBidHint').textContent = '';
+  if (!state.currentLot || !team) { $('bidErr').textContent = ''; $('sellBtn').disabled = true; return; }
   const cat = POOL_BY_NAME[state.currentLot].category;
+  const maxInfo = maxBidForCategory(team, cat);
+  if (maxInfo.ok) {
+    $('maxBidHint').textContent = `${team} max ${cat} bid: ${maxInfo.max.toLocaleString()} (reserves ${maxInfo.reserve.toLocaleString()} for remaining required slots)`;
+  } else {
+    $('maxBidHint').textContent = maxInfo.msg;
+  }
+  if (!pts) { $('bidErr').textContent = ''; $('sellBtn').disabled = true; return; }
   const v = bidValid(team, pts, cat);
   $('bidErr').textContent = v.ok ? '' : '⚠ ' + v.msg;
   $('sellBtn').disabled = !v.ok;
@@ -563,7 +593,11 @@ function commitSale() {
   if (!team || !pts) { $('bidErr').textContent = 'Select team and enter points'; return; }
   const cat = POOL_BY_NAME[player].category;
   const v = bidValid(team, pts, cat);
-  if (!v.ok) { $('bidErr').textContent = '⚠ ' + v.msg; return; }
+  if (!v.ok) {
+    $('bidErr').textContent = '⚠ ' + v.msg;
+    if (/Max .* bid|must reserve/.test(v.msg)) alert(v.msg);
+    return;
+  }
   state.log.push({n: state.log.length+1, player, team, pts, action:'sold', ts: Date.now()});
   addAudit('sold', `${player} -> ${team} @ ${pts}`);
   state.currentLot = null;
