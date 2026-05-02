@@ -35,7 +35,14 @@ If online sync is not configured or fails, export JSON from the console and use 
 9. Open `admin.html`, enter the same admin key, and click `Save sync settings`.
 10. After that, every admin action auto-pushes online. Use `Force push now` only if you want to resend the current state manually.
 
-The Google Sheet will keep a `State` tab with the full JSON state and an `Auction Log` tab with readable lot history.
+The Google Sheet will keep:
+- `State` tab with the full JSON state used by the public website.
+- `Auction Log` tab with readable lot history.
+- `League Summary` tab with purse, roster, category counts, slots left, and required reserve by team.
+- `Player Pool` tab with every auction player and live status.
+- One tab per team with retained players, auction buys, spend, purse, and category totals.
+
+When `apps-script/Code.gs` changes in this repo, paste the updated file into Apps Script and deploy a new Web App version. GitHub Pages updates the website, but it does not automatically update the Google Apps Script project.
 
 ## Deploy to GitHub Pages
 
