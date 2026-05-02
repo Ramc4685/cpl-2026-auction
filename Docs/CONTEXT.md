@@ -45,7 +45,7 @@ Cricket Auction/
 
 **Backend.** Lightweight Google Sheet/App Script bridge only. Single-admin model.
 
-## Rules in effect (v2 — current)
+## Rules in effect (v3 — current)
 
 | Rule | Value |
 |---|---|
@@ -54,9 +54,9 @@ Cricket Auction/
 | Required Gold per team | 3 |
 | Required Silver per team | 5 |
 | Required Bronze per team | 7 |
-| Gold floor | 20,000 |
-| Silver floor | 10,000 |
-| Bronze floor | 4,000 |
+| Gold floor | 15,000 |
+| Silver floor | 5,000 |
+| Bronze floor | 3,000 |
 | RTM | OFF |
 
 Bid increments:
@@ -65,7 +65,7 @@ Bid increments:
 - 25,001 – 50,000 → +2,500
 - Above 50,000 → +5,000
 
-## Pool snapshot (v2)
+## Pool snapshot (v3)
 
 44 players: 4 Gold, 15 Silver, 25 Bronze. Pool exactly matches max demand across categories — no slack, no surplus.
 
@@ -125,5 +125,6 @@ Or hand-edit `data.js` for small changes — it's a single JSON object assigned 
 ## Version history
 
 - **v1** (May 1, 2026) — Initial build with old caps (4/5/6) and old floors (5k/2.5k/1k).
-- **v2** (May 1, 2026) — New caps (3/5/7), new floors (20k/10k/4k), new auction pool (44 players, 4G/15S/25B).
+- **v2** (May 1, 2026) — New caps (3/5/7), previous floors (20k/10k/4k), new auction pool (44 players, 4G/15S/25B).
+- **v3** (May 2, 2026) — Floors updated to Gold 15k, Silver 5k, Bronze 3k so all teams can complete exact rosters and Gold bidding remains competitive.
 - **v3** (May 1, 2026) — Refreshed auction pool categories from Google Sheet while preserving 44 players and 4G/15S/25B counts.

@@ -8,9 +8,9 @@
     "extra_points": 20000,
     "total_points": 140000,
     "floors": {
-      "Gold": 20000,
-      "Silver": 10000,
-      "Bronze": 4000
+      "Gold": 15000,
+      "Silver": 5000,
+      "Bronze": 3000
     }
   },
   "min_roster": 15,

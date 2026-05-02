@@ -1,4 +1,4 @@
-# CPL 2026 Pre-Auction Audit (v2 — updated pool + new rules)
+# CPL 2026 Pre-Auction Audit (v3 — exact roster + updated floors)
 
 ## Headline numbers
 
@@ -15,8 +15,8 @@ Every remaining auction player is needed to complete exact 15-player rosters acr
 ## Money
 
 - Total purse left across 8 teams: **368,800**
-- Floor-only spend if all sold at floor: **330,000**
-- Headroom for above-floor bidding: **38,800**
+- Floor-only spend if all sold at floor: **210,000**
+- Headroom for above-floor bidding: **158,800**
 - Floor-only reserve uses the actual remaining category mix, not a generic Bronze-only fill.
 
 All teams must preserve enough purse to complete their remaining Gold, Silver, and Bronze slots.
@@ -24,7 +24,7 @@ All teams must preserve enough purse to complete their remaining Gold, Silver, a
 ## Rules in effect
 
 - Required per team: **Gold 3, Silver 5, Bronze 7** (total 15)
-- Floors: **Gold 20,000, Silver 10,000, Bronze 4,000**
+- Floors: **Gold 15,000, Silver 5,000, Bronze 3,000**
 - Total purse per team: 140,000 (120k base + 20k extra)
 - RTM: **OFF**
 
@@ -58,7 +58,7 @@ Only 3 teams compete for 4 Gold:
 - PARKE — 1 Gold slot, purse 47,600
 - TECHIE — 1 Gold slot, purse 64,300
 
-4 Gold for 4 demand slots → likely all sell at or near floor (20k each = 80k total).
+4 Gold for 4 demand slots. With the 15k Gold floor, BLOOM, PARKE, and TECHIE can all legally compete for Gold.
 
 ## Recommended actions before auction day
 
