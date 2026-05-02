@@ -64,6 +64,19 @@
   .compact-actions{display:flex;gap:6px}
   .compact-actions button{padding:5px 7px;font-size:11px}
   .inline-note{font-size:12px;color:var(--mute);margin-top:8px}
+  .bid-board{background:#0f1728;border:1px solid #2a3653;border-radius:8px;padding:12px;margin:12px 0}
+  .bid-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
+  .bid-head .k{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em}
+  .bid-head .v{font-size:24px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+  .bid-head .sub{font-size:12px;color:var(--mute);text-align:right}
+  .bid-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .bid-team{min-height:74px;text-align:left;padding:9px 10px;background:#1d4ed8;border-color:#3b82f6}
+  .bid-team .team{display:block;font-weight:800;line-height:1.15}
+  .bid-team .next{display:block;margin-top:4px;font-size:18px;color:#fff;font-variant-numeric:tabular-nums}
+  .bid-team .cap{display:block;margin-top:2px;font-size:11px;color:#c7d2fe;font-weight:600}
+  .bid-team:disabled{background:#172033;border-color:#2a3653;color:#6f7f9e;opacity:1}
+  .bid-team:disabled .next,.bid-team:disabled .cap{color:#6f7f9e}
+  @media (max-width:700px){.bid-grid{grid-template-columns:1fr 1fr}.bid-head{align-items:flex-start;flex-direction:column}.bid-head .sub{text-align:left}}
   .site-credit{max-width:1500px;margin:0 auto 28px;padding:0 18px;color:var(--mute);font-size:12px;text-align:center}
   hr{border:0;border-top:1px solid #25324d;margin:10px 0}
 </style>
@@ -114,7 +127,24 @@
       <div class="grid3" style="margin-top:12px" id="lotStats"></div>
     </div>
 
-    <h2 style="margin-top:18px">Sell To</h2>
+    <h2 style="margin-top:18px">Bid Pad</h2>
+    <div class="bid-board">
+      <div class="bid-head">
+        <div>
+          <div class="k">Current High Bid</div>
+          <div class="v" id="bidLeader">—</div>
+        </div>
+        <div class="sub" id="nextBidHint">Pick a lot to start bidding.</div>
+      </div>
+      <div class="bid-grid" id="bidTeamButtons"></div>
+      <div class="row" style="margin-top:8px">
+        <button id="undoBidBtn" class="ghost">Undo bid</button>
+        <button id="resetBidBtn" class="ghost">Reset bid</button>
+      </div>
+      <div class="inline-note" id="bidPadNote">Only teams that can make the next legal bid are active.</div>
+    </div>
+
+    <h2 style="margin-top:18px">Finalize / Manual Entry</h2>
     <label>Winning Team</label>
     <select id="winTeam"><option value="">-- select team --</option></select>
     <label>Sold Points <span class="small" id="floorHint"></span></label>
@@ -275,6 +305,7 @@ let syncMeta = {
 };
 const D = window.CPL_DATA;
 const POOL_BY_NAME = Object.fromEntries(D.pool.map(p => [p.player, p]));
+let bidHistory = [];
 
 // ============= COMPUTED =============
 function cloneState(source) {
@@ -361,7 +392,27 @@ function incrementValid(pts) {
   return pts % 5000 === 0;
 }
 
-function bidValid(team, pts, category, sourceState=state) {
+function incrementForAmount(pts) {
+  if (pts <= 10000) return 500;
+  if (pts <= 25000) return 1000;
+  if (pts <= 50000) return 2500;
+  return 5000;
+}
+
+function incrementValidFrom(pts, previousPts) {
+  if (!Number.isInteger(pts) || pts <= 0) return false;
+  if (!previousPts) return incrementValid(pts);
+  const inc = incrementForAmount(previousPts);
+  return pts > previousPts && (pts - previousPts) >= inc && (pts - previousPts) % inc === 0;
+}
+
+function nextLegalBidAfter(previousPts, category) {
+  const floor = RULES.floors[category] || 0;
+  if (!previousPts) return floor;
+  return previousPts + incrementForAmount(previousPts);
+}
+
+function bidValid(team, pts, category, sourceState=state, previousPts=null) {
   const t = teamStats(team, sourceState);
   // 1. exact category target
   const capMap = {Gold:t.g, Silver:t.s, Bronze:t.b};
@@ -374,7 +425,7 @@ function bidValid(team, pts, category, sourceState=state) {
   // 3. floor
   const floor = RULES.floors[category] || 0;
   if (pts < floor) return {ok:false, msg:`Below ${category} floor (${floor})`};
-  if (!incrementValid(pts)) return {ok:false, msg:'Does not match bid increment ladder'};
+  if (!incrementValidFrom(pts, previousPts)) return {ok:false, msg:'Does not match bid increment ladder'};
   // 4. purse and required category-slot reserve
   const maxInfo = maxBidForCategory(team, category, sourceState);
   if (!maxInfo.ok) return {ok:false, msg:maxInfo.msg};
@@ -451,6 +502,7 @@ function renderLot() {
     lotStats.innerHTML = '';
     $('floorHint').textContent = '';
     $('sellBtn').disabled = true;
+    renderBidPad();
     return;
   }
   const p = POOL_BY_NAME[player];
@@ -468,6 +520,90 @@ function renderLot() {
   // refresh win team eligibility
   refreshTeamSelect();
   validateBidUI();
+}
+
+function nextBidForLot() {
+  if (!state.currentLot) return 0;
+  const cat = POOL_BY_NAME[state.currentLot].category;
+  const current = Number($('soldPts').value || 0);
+  return nextLegalBidAfter(current, cat);
+}
+
+function maxLegalBidForTeam(team, category, previousPts=0) {
+  const maxInfo = maxBidForCategory(team, category);
+  const floor = RULES.floors[category] || 0;
+  if (!maxInfo.ok || maxInfo.max < floor) return Object.assign({}, maxInfo, {legalMax:0});
+  let amount = nextLegalBidAfter(previousPts, category);
+  let last = previousPts || null;
+  let legalMax = 0;
+  let guard = 0;
+  while (amount <= maxInfo.max && guard < 200) {
+    if (bidValid(team, amount, category, state, last).ok) legalMax = amount;
+    last = amount;
+    amount = nextLegalBidAfter(amount, category);
+    guard++;
+  }
+  return Object.assign({}, maxInfo, {legalMax});
+}
+
+function renderBidPad() {
+  const grid = $('bidTeamButtons');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const team = $('winTeam').value;
+  const pts = Number($('soldPts').value || 0);
+  if (!state.currentLot) {
+    $('bidLeader').textContent = '—';
+    $('nextBidHint').textContent = 'Pick a lot to start bidding.';
+    $('bidPadNote').textContent = 'Only teams that can make the next legal bid are active.';
+    $('undoBidBtn').disabled = true;
+    $('resetBidBtn').disabled = true;
+    return;
+  }
+
+  const cat = POOL_BY_NAME[state.currentLot].category;
+  const next = nextBidForLot();
+  $('bidLeader').textContent = team && pts ? `${bidTeamLabel(team)} · ${pts.toLocaleString()}` : 'No bid yet';
+  $('nextBidHint').textContent = `Next ${cat} bid: ${next.toLocaleString()}`;
+  $('undoBidBtn').disabled = !bidHistory.length;
+  $('resetBidBtn').disabled = !team && !pts;
+
+  let activeCount = 0;
+  for (const t of D.teams) {
+    const legal = maxLegalBidForTeam(t, cat, pts);
+    const isHighBidder = team === t && pts > 0;
+    const nextValid = !isHighBidder && bidValid(t, next, cat, state, pts || null);
+    const canBid = nextValid.ok;
+    if (canBid) activeCount++;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'bid-team';
+    button.disabled = !canBid;
+    const detail = isHighBidder
+      ? 'Current high bidder'
+      : canBid
+        ? `Legal max ${Number(legal.legalMax || 0).toLocaleString()}`
+        : legal.ok && next > legal.max
+          ? `Cannot reach ${next.toLocaleString()} · max ${Number(legal.max || 0).toLocaleString()}`
+        : legal.legalMax
+          ? `Max reached ${Number(legal.legalMax).toLocaleString()}`
+          : (legal.msg || nextValid.msg || 'Not eligible');
+    button.innerHTML = `
+      <span class="team">${bidTeamLabel(t)}</span>
+      <span class="next">${canBid ? next.toLocaleString() : '—'}</span>
+      <span class="cap">${detail}</span>`;
+    button.title = `${t}: ${detail}`;
+    if (canBid) button.addEventListener('click', () => applyTeamBid(t));
+    grid.appendChild(button);
+  }
+  $('bidPadNote').textContent = activeCount
+    ? `${activeCount} team(s) can make the next bid.`
+    : 'No team can make the next legal bid. Sell to the current high bidder or mark unsold.';
+}
+
+function currentPreviousBid() {
+  if (!bidHistory.length) return null;
+  return Number(bidHistory[bidHistory.length - 1].pts || 0) || null;
 }
 
 function refreshTeamSelect() {
@@ -557,6 +693,7 @@ function renderAll() {
 function setLot(player) {
   if (poolStatus(player) !== 'available' && !confirm(`${player} is already ${poolStatus(player)}. Open it as current lot anyway?`)) return;
   state.currentLot = player;
+  bidHistory = [];
   $('soldPts').value = '';
   $('winTeam').value = '';
   $('bidErr').textContent = '';
@@ -571,7 +708,12 @@ function validateBidUI() {
   const pts = Number($('soldPts').value || 0);
   $('bigPrice').textContent = pts ? pts.toLocaleString() : '—';
   $('maxBidHint').textContent = '';
-  if (!state.currentLot || !team) { $('bidErr').textContent = ''; $('sellBtn').disabled = true; return; }
+  if (!state.currentLot || !team) {
+    $('bidErr').textContent = '';
+    $('sellBtn').disabled = true;
+    renderBidPad();
+    return;
+  }
   const cat = POOL_BY_NAME[state.currentLot].category;
   const maxInfo = maxBidForCategory(team, cat);
   if (maxInfo.ok) {
@@ -579,10 +721,60 @@ function validateBidUI() {
   } else {
     $('maxBidHint').textContent = maxInfo.msg;
   }
-  if (!pts) { $('bidErr').textContent = ''; $('sellBtn').disabled = true; return; }
-  const v = bidValid(team, pts, cat);
+  if (!pts) {
+    $('bidErr').textContent = '';
+    $('sellBtn').disabled = true;
+    renderBidPad();
+    return;
+  }
+  const v = bidValid(team, pts, cat, state, currentPreviousBid());
   $('bidErr').textContent = v.ok ? '' : '⚠ ' + v.msg;
   $('sellBtn').disabled = !v.ok;
+  renderBidPad();
+}
+
+function applyTeamBid(team) {
+  if (!state.currentLot) return;
+  const cat = POOL_BY_NAME[state.currentLot].category;
+  const previousTeam = $('winTeam').value;
+  const previousPts = Number($('soldPts').value || 0);
+  const next = nextBidForLot();
+  const v = bidValid(team, next, cat, state, previousPts || null);
+  if (!v.ok) {
+    $('bidErr').textContent = '⚠ ' + v.msg;
+    renderBidPad();
+    return;
+  }
+  bidHistory.push({team: previousTeam, pts: previousPts});
+  $('winTeam').value = team;
+  $('soldPts').value = next;
+  $('okMsg').textContent = `Bid: ${bidTeamLabel(team)} @ ${next.toLocaleString()}`;
+  validateBidUI();
+}
+
+function undoCurrentBid() {
+  if (!bidHistory.length) return;
+  const prev = bidHistory.pop();
+  $('winTeam').value = prev.team || '';
+  $('soldPts').value = prev.pts || '';
+  $('okMsg').textContent = prev.team && prev.pts
+    ? `Bid back to ${bidTeamLabel(prev.team)} @ ${Number(prev.pts).toLocaleString()}`
+    : 'Bid cleared';
+  validateBidUI();
+}
+
+function resetCurrentBid() {
+  bidHistory = [];
+  $('winTeam').value = '';
+  $('soldPts').value = '';
+  $('bidErr').textContent = '';
+  $('okMsg').textContent = 'Current lot bid reset';
+  validateBidUI();
+}
+
+function manualBidEdited() {
+  bidHistory = [];
+  validateBidUI();
 }
 
 function commitSale() {
@@ -592,7 +784,7 @@ function commitSale() {
   const pts = Number($('soldPts').value || 0);
   if (!team || !pts) { $('bidErr').textContent = 'Select team and enter points'; return; }
   const cat = POOL_BY_NAME[player].category;
-  const v = bidValid(team, pts, cat);
+  const v = bidValid(team, pts, cat, state, currentPreviousBid());
   if (!v.ok) {
     $('bidErr').textContent = '⚠ ' + v.msg;
     if (/Max .* bid|must reserve/.test(v.msg)) alert(v.msg);
@@ -601,6 +793,7 @@ function commitSale() {
   state.log.push({n: state.log.length+1, player, team, pts, action:'sold', ts: Date.now()});
   addAudit('sold', `${player} -> ${team} @ ${pts}`);
   state.currentLot = null;
+  bidHistory = [];
   commitState('sold');
   $('okMsg').textContent = `✓ ${player} → ${team} @ ${pts.toLocaleString()}`;
 }
@@ -611,6 +804,7 @@ function markUnsold() {
   state.log.push({n: state.log.length+1, player, action:'unsold', ts: Date.now()});
   addAudit('unsold', player);
   state.currentLot = null;
+  bidHistory = [];
   commitState('unsold');
   $('okMsg').textContent = `${player} marked UNSOLD`;
 }
@@ -720,8 +914,17 @@ function resetAll() {
   if (!confirm('Reset ALL auction state? This cannot be undone (export first).')) return;
   if (!confirm('Are you absolutely sure?')) return;
   state = defaultState();
+  bidHistory = [];
   addAudit('reset', 'Auction state reset');
   commitState('reset');
+}
+
+function clearCurrentLot() {
+  state.currentLot = null;
+  bidHistory = [];
+  $('winTeam').value = '';
+  $('soldPts').value = '';
+  commitState('clear lot');
 }
 
 // ============= ONLINE SYNC =============
@@ -884,14 +1087,30 @@ function shortTeam(team) {
   return (team || '').split(' ')[0] || '—';
 }
 
+function bidTeamLabel(team) {
+  const labels = {
+    'BLOOM BARWARCHI BULLS': 'BLOOM BULLS',
+    'PARKE REGENCY THALAIVAS': 'PARKE',
+    'ARCHRIVALS': 'ARCHRIVALS',
+    'CRAFTBARN CHALLENGERS': 'CRAFTBARN',
+    'TECHIE BRAINS': 'TECHIE',
+    'GPT SHERS': 'GPT SHERS',
+    'GNRSYSTEM LIONS': 'GNR LIONS',
+    'BLOOM EVENTS': 'BLOOM EVENTS',
+  };
+  return labels[team] || shortTeam(team);
+}
+
 // ============= WIRE UP =============
 ['filterCat','filterStatus','searchPool'].forEach(id => $(id).addEventListener('input', renderPool));
-$('winTeam').addEventListener('change', validateBidUI);
-$('soldPts').addEventListener('input', validateBidUI);
+$('winTeam').addEventListener('change', manualBidEdited);
+$('soldPts').addEventListener('input', manualBidEdited);
 $('sellBtn').addEventListener('click', commitSale);
 $('unsoldBtn').addEventListener('click', markUnsold);
 $('undoBtn').addEventListener('click', undoLast);
-$('clearLotBtn').addEventListener('click', () => { state.currentLot = null; commitState('clear lot'); });
+$('undoBidBtn').addEventListener('click', undoCurrentBid);
+$('resetBidBtn').addEventListener('click', resetCurrentBid);
+$('clearLotBtn').addEventListener('click', clearCurrentLot);
 $('exportBtn').addEventListener('click', e => {e.preventDefault(); exportJSON();});
 $('importBtn').addEventListener('click', e => {e.preventDefault(); $('importFile').click();});
 $('importFile').addEventListener('change', e => { if(e.target.files[0]) importJSON(e.target.files[0]); });
