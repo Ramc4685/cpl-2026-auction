@@ -28,6 +28,7 @@ This site solves all of the above.
 Cricket Auction/
 ├── owner.html      Owner Dashboard (read-only, default page)
 ├── index.html      Redirects to owner.html for old/default links
+├── teams.html      Final closed-auction rosters by team
 ├── admin.html      Live Auction Console (admin-only)
 ├── rules.html      Auction Rules one-pager (printable)
 ├── data.js         Embedded data: teams, retained, pool, rules
@@ -42,7 +43,7 @@ Cricket Auction/
 
 **Data flow.** `data.js` defines `window.CPL_DATA` containing teams, retained roster, auction pool, and rules. Both `admin.html` and `owner.html` read it on load. `index.html` exists only as a redirect to `owner.html`.
 
-**State flow.** The console writes auction outcomes and the current high bid to `localStorage` under key `cpl2026_state_v1`. If `config.js` has an Apps Script Web App URL and the conductor enters the admin key, the console also publishes state to a Google Sheet through Apps Script. The owner dashboard and public spectator page poll the Web App URL every few seconds.
+**State flow.** The console writes auction outcomes and the current high bid to `localStorage` under key `cpl2026_state_v1`. If `config.js` has an Apps Script Web App URL and the conductor enters the admin key, the console also publishes state to a Google Sheet through Apps Script. The owner dashboard and public spectator page poll the Web App URL every few seconds. The final teams page loads the same online state and combines sold players with retained players.
 
 **Backend.** Lightweight Google Sheet/App Script bridge only. Single-admin model. Each admin push writes the machine-readable `State` tab plus readable `Auction Log`, `League Summary`, `Player Pool`, and one tab per team. The admin page has a static front-door password for casual access control; the Apps Script admin key is the real write protection.
 

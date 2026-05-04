@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>CPL 2026 - Final Team Rosters</title>
+<style>
+  :root{--bg:#0b1220;--panel:#121a2e;--panel2:#1a2440;--ink:#e6edf6;--mute:#8aa0c2;--line:#25324d;--accent:#fbbf24;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}
+  header{position:sticky;top:0;z-index:10;background:#070d1a;border-bottom:1px solid var(--line);padding:13px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  h1{margin:0;font-size:17px;line-height:1.2}
+  .nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+  .nav a{color:var(--accent);text-decoration:none;font-size:13px;min-height:36px;display:inline-flex;align-items:center}
+  .wrap{max-width:1220px;margin:0 auto;padding:14px}
+  .status{font-size:12px;color:var(--mute);margin:2px 0 12px}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warn);margin-right:6px}
+  .dot.ok{background:var(--ok)}
+  .hero{background:linear-gradient(135deg,#17213b,#26335d);border:1px solid #344163;border-radius:10px;padding:18px;margin-bottom:12px}
+  .hero .label{font-size:11px;color:var(--mute);font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .hero .title{font-size:30px;font-weight:900;line-height:1.08;margin-top:4px}
+  .hero .sub{color:var(--mute);margin-top:6px}
+  .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
+  .metric{background:rgba(11,18,32,.58);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px}
+  .metric .k{font-size:10px;color:var(--mute);text-transform:uppercase;font-weight:800;letter-spacing:.06em}
+  .metric .v{font-size:22px;font-weight:900;margin-top:2px;line-height:1.15;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+  .team{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+  .team-head{padding:13px;background:#10182a;border-bottom:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
+  .team-name{font-size:18px;font-weight:900;line-height:1.15;overflow-wrap:anywhere}
+  .team-summary{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .pill{display:inline-flex;align-items:center;border-radius:999px;padding:3px 7px;font-size:11px;font-weight:800;white-space:nowrap}
+  .pill.gold{background:#7c5800;color:#fde68a}
+  .pill.silver{background:#475569;color:#e2e8f0}
+  .pill.bronze{background:#78350f;color:#fed7aa}
+  .pill.ok{background:#064e3b;color:#a7f3d0}
+  .pill.warn{background:#78350f;color:#fcd34d}
+  .table-wrap{overflow:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;padding:8px 10px;color:var(--mute);font-weight:800;font-size:11px;text-transform:uppercase;border-bottom:1px solid var(--line)}
+  td{padding:8px 10px;border-bottom:1px solid #1d2840;vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .muted{color:var(--mute)}
+  .player{font-weight:850;overflow-wrap:anywhere}
+  .source{font-size:12px;color:var(--mute);margin-top:2px}
+  .site-credit{color:var(--mute);font-size:12px;text-align:center;padding:4px 12px 22px}
+  @media (max-width:760px){
+    header{align-items:flex-start}
+    h1{font-size:15px;max-width:190px}
+    .wrap{padding:10px}
+    .hero{padding:14px;border-radius:8px}
+    .hero .title{font-size:25px}
+    .metrics{grid-template-columns:1fr 1fr}
+    .team-head{grid-template-columns:1fr}
+    .team-summary{justify-content:flex-start}
+    table,thead,tbody,tr,td{display:block}
+    thead{display:none}
+    tbody{display:grid;gap:8px;padding:10px}
+    tr{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px}
+    td{display:grid;grid-template-columns:minmax(88px,34%) minmax(0,1fr);gap:10px;border:0;padding:4px 0;text-align:left}
+    td:first-child{display:block;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:4px}
+    td:first-child::before{display:none}
+    td::before{content:attr(data-label);color:var(--mute);font-size:10px;text-transform:uppercase;font-weight:800;text-align:left}
+    .num{text-align:left}
+  }
+  @media (max-width:360px){.metrics{grid-template-columns:1fr}h1{max-width:160px}}
+  @media print{
+    header,.status,.nav{display:none}
+    body{background:#fff;color:#111}
+    .wrap{max-width:none;padding:0}
+    .hero,.team{break-inside:avoid;background:#fff;border-color:#ccc}
+    .team-head{background:#f4f4f5;border-color:#ccc}
+    th,td{border-color:#ddd;color:#111}
+    .muted,.source,.hero .sub,.metric .k{color:#555}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>CPL 2026 - Final Rosters</h1>
+  <div class="nav">
+    <a href="public.html">Public</a>
+    <a href="owner.html">Owners</a>
+    <a href="rules.html">Rules</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="status" id="onlineStatus"><span class="dot"></span>Loading final auction data...</div>
+
+  <section class="hero">
+    <div class="label">Auction Closed</div>
+    <div class="title">Final Team Rosters</div>
+    <div class="sub">Retained players and auction buys by team, with points.</div>
+    <div class="metrics" id="leagueMetrics"></div>
+  </section>
+
+  <div id="teams"></div>
+</main>
+
+<footer class="site-credit">Created by RamC Venkatasamy, for CPL 2026, Live auction app</footer>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script>
+const RULES = {
+  caps: {Gold:3, Silver:5, Bronze:7},
+  totalPurse: 140000,
+};
+const D = window.CPL_DATA;
+const POOL_BY_NAME = Object.fromEntries(D.pool.map(p => [p.player, p]));
+const $ = id => document.getElementById(id);
+let auctionState = normalizeState({});
+let lastOnlineCheckAt = null;
+
+try {
+  const raw = localStorage.getItem('cpl2026_state_v1');
+  if (raw) auctionState = normalizeState(JSON.parse(raw));
+} catch(e) {}
+
+function normalizeState(input) {
+  const s = Object.assign({sold:{}, unsold:{}, log:[], audit:[], currentLot:null, currentBid:null, revision:0, updatedAt:null}, input || {});
+  s.sold = s.sold || {};
+  s.unsold = s.unsold || {};
+  s.log = Array.isArray(s.log) ? s.log : [];
+  s.audit = Array.isArray(s.audit) ? s.audit : [];
+  rebuildOutcomesFromLog(s);
+  return s;
+}
+
+function rebuildOutcomesFromLog(target=auctionState) {
+  target.sold = {};
+  target.unsold = {};
+  for (const e of target.log || []) {
+    if (!e || e.action === 'void') continue;
+    if (e.action === 'sold') {
+      target.sold[e.player] = {team:e.team, pts:Number(e.pts || 0), ts:e.ts || Date.now(), lot:e.n};
+      delete target.unsold[e.player];
+    } else if (e.action === 'unsold') {
+      target.unsold[e.player] = e.ts || Date.now();
+      delete target.sold[e.player];
+    }
+  }
+}
+
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function points(value) {
+  return Number(value || 0).toLocaleString();
+}
+
+function phoneFor(player) {
+  return player.phone || player.Phone || player.mobile || player.Mobile || player.phone_number || player.contact || player.Contact || '';
+}
+
+function allRosterRows(team) {
+  const retained = D.retained
+    .filter(p => p.team === team && p.status === 'Retained Registered')
+    .map(p => ({
+      player: p.player,
+      category: p.category,
+      points: Number(p.points || 0),
+      role: [p.role, p.spec].filter(Boolean).join(' · '),
+      phone: phoneFor(p),
+      source: 'Retained',
+      lot: null,
+    }));
+
+  const bought = Object.entries(auctionState.sold)
+    .filter(([, sale]) => sale.team === team)
+    .map(([player, sale]) => {
+      const p = POOL_BY_NAME[player] || {};
+      return {
+        player,
+        category: p.category || 'Unknown',
+        points: Number(sale.pts || 0),
+        role: [p.role, p.spec].filter(Boolean).join(' · '),
+        phone: phoneFor(p),
+        source: 'Auction',
+        lot: sale.lot || '',
+      };
+    });
+
+  const order = {Gold:0, Silver:1, Bronze:2, Unknown:3};
+  return retained.concat(bought).sort((a,b) =>
+    (order[a.category] ?? 9) - (order[b.category] ?? 9) ||
+    b.points - a.points ||
+    a.player.localeCompare(b.player)
+  );
+}
+
+function teamStats(team) {
+  const rows = allRosterRows(team);
+  const cats = rows.reduce((acc, p) => {
+    acc[p.category] = (acc[p.category] || 0) + 1;
+    return acc;
+  }, {});
+  const spend = rows.reduce((sum, p) => sum + Number(p.points || 0), 0);
+  return {team, rows, spend, purse: RULES.totalPurse - spend, count: rows.length, cats};
+}
+
+function metric(label, value, sub='') {
+  return `<div class="metric"><div class="k">${esc(label)}</div><div class="v">${esc(value)}</div>${sub ? `<div class="muted">${esc(sub)}</div>` : ''}</div>`;
+}
+
+function renderMetrics(stats) {
+  const rostered = stats.reduce((sum, t) => sum + t.count, 0);
+  const spend = stats.reduce((sum, t) => sum + t.spend, 0);
+  const sold = Object.keys(auctionState.sold).length;
+  const unsold = Object.keys(auctionState.unsold).length;
+  $('leagueMetrics').innerHTML = [
+    metric('Teams', D.teams.length),
+    metric('Players Rostered', rostered, 'retained + auction'),
+    metric('Auction Sold', sold, `${unsold} unsold`),
+    metric('Total Spend', points(spend)),
+  ].join('');
+}
+
+function renderTeams() {
+  const stats = D.teams.map(teamStats);
+  const hasPhone = stats.some(t => t.rows.some(p => phoneFor(p)));
+  renderMetrics(stats);
+  $('teams').innerHTML = stats.map(t => {
+    const rows = t.rows.map(p => `
+      <tr>
+        <td data-label="Player"><div class="player">${esc(p.player)}</div><div class="source">${esc(p.role || p.source)}${p.lot ? ` · Lot #${esc(p.lot)}` : ''}</div></td>
+        <td data-label="Category"><span class="pill ${esc(String(p.category).toLowerCase())}">${esc(p.category)}</span></td>
+        <td data-label="Type">${esc(p.source)}</td>
+        <td data-label="Points" class="num">${points(p.points)}</td>
+        ${hasPhone ? `<td data-label="Phone">${p.phone ? esc(p.phone) : '<span class="muted">-</span>'}</td>` : ''}
+      </tr>`).join('');
+    return `<section class="team">
+      <div class="team-head">
+        <div>
+          <div class="team-name">${esc(t.team)}</div>
+          <div class="muted">${t.count}/15 players · ${points(t.spend)} spent · ${points(t.purse)} purse left</div>
+        </div>
+        <div class="team-summary">
+          <span class="pill gold">${t.cats.Gold || 0}/${RULES.caps.Gold} Gold</span>
+          <span class="pill silver">${t.cats.Silver || 0}/${RULES.caps.Silver} Silver</span>
+          <span class="pill bronze">${t.cats.Bronze || 0}/${RULES.caps.Bronze} Bronze</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Player</th><th>Category</th><th>Type</th><th class="num">Points</th>${hasPhone ? '<th>Phone</th>' : ''}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </section>`;
+  }).join('');
+}
+
+function onlineUrl() {
+  return ((window.CPL_CONFIG || {}).APPS_SCRIPT_URL || '').trim();
+}
+
+function jsonp(url, params={}, timeoutMs=10000) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cplTeamsPageJsonp_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('Timed out'));
+    }, timeoutMs);
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cb];
+      script.remove();
+    }
+    window[cb] = data => {
+      cleanup();
+      resolve(data);
+    };
+    const u = new URL(url);
+    u.searchParams.set('callback', cb);
+    u.searchParams.set('_', Date.now());
+    for (const [k,v] of Object.entries(params)) u.searchParams.set(k, v);
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('Could not load online state'));
+    };
+    script.src = u.toString();
+    document.body.appendChild(script);
+  });
+}
+
+async function loadOnlineState() {
+  const url = onlineUrl();
+  if (!url) {
+    $('onlineStatus').innerHTML = '<span class="dot"></span>Local final roster snapshot';
+    renderTeams();
+    return;
+  }
+  try {
+    const data = await jsonp(url, {action:'state'});
+    if (!data.ok || !data.state) throw new Error(data.error || 'Invalid online state');
+    auctionState = normalizeState(data.state);
+    lastOnlineCheckAt = data.serverTime || new Date().toISOString();
+    localStorage.setItem('cpl2026_state_v1', JSON.stringify(auctionState));
+    $('onlineStatus').innerHTML = `<span class="dot ok"></span>Final roster loaded online · rev ${auctionState.revision || 0} · checked ${new Date(lastOnlineCheckAt).toLocaleTimeString()}`;
+    renderTeams();
+  } catch (err) {
+    $('onlineStatus').innerHTML = '<span class="dot"></span>Online refresh failed · showing last local snapshot';
+    renderTeams();
+  }
+}
+
+renderTeams();
+loadOnlineState();
+</script>
+</body>
+</html>

@@ -78,6 +78,7 @@
 <header>
   <h1>CPL 2026 - Public Live Auction</h1>
   <div class="nav">
+    <a href="teams.html">Teams</a>
     <a href="owner.html">Owners</a>
     <a href="rules.html">Rules</a>
   </div>
@@ -176,6 +177,11 @@ function poolStatus(player) {
   return 'available';
 }
 
+function auctionClosed() {
+  const target = Number((D.slots_to_max || {}).Total || D.pool.length || 0);
+  return target > 0 && (Object.keys(auctionState.sold).length + Object.keys(auctionState.unsold).length) >= target;
+}
+
 function teamStats(team) {
   let g=0,s=0,b=0,count=0,spend=0;
   for (const p of D.retained) {
@@ -237,6 +243,19 @@ function renderLive() {
     return;
   }
 
+  if (auctionClosed()) {
+    $('liveTitle').textContent = 'Auction Closed';
+    $('lotName').textContent = 'Final team rosters are ready';
+    $('lotMeta').textContent = 'Use the Teams page to view every squad with points.';
+    $('liveMetrics').innerHTML = [
+      metric('Teams', D.teams.length),
+      metric('Rostered', D.teams.length * 15, 'players'),
+      metric('Sold', Object.keys(auctionState.sold).length),
+      metric('Revision', auctionState.revision || 0)
+    ].join('');
+    return;
+  }
+
   if (latest) {
     $('lotName').textContent = latest.action === 'sold' ? `${latest.player} sold` : `${latest.player} unsold`;
     $('lotMeta').textContent = latest.action === 'sold'
@@ -258,12 +277,20 @@ function renderSnapshot() {
   const sold = Object.keys(auctionState.sold).length;
   const unsold = Object.keys(auctionState.unsold).length;
   const totalSpend = Object.values(auctionState.sold).reduce((sum, sale) => sum + Number(sale.pts || 0), 0);
-  $('snapshotMetrics').innerHTML = [
-    metric('Teams', D.teams.length),
-    metric('Pool Available', D.pool.length - sold - unsold, `of ${D.pool.length}`),
-    metric('Sold', sold),
-    metric('Auction Spend', totalSpend.toLocaleString())
-  ].join('');
+  const closed = auctionClosed();
+  $('snapshotMetrics').innerHTML = closed
+    ? [
+      metric('Status', 'Closed'),
+      metric('Teams', D.teams.length),
+      metric('Auction Sold', sold, `${unsold} unsold`),
+      metric('Auction Spend', totalSpend.toLocaleString())
+    ].join('')
+    : [
+      metric('Teams', D.teams.length),
+      metric('Pool Available', D.pool.length - sold - unsold, `of ${D.pool.length}`),
+      metric('Sold', sold),
+      metric('Auction Spend', totalSpend.toLocaleString())
+    ].join('');
 }
 
 function renderTeams() {
@@ -297,6 +324,10 @@ function renderRecent() {
 }
 
 function renderPool() {
+  if (auctionClosed()) {
+    $('poolList').innerHTML = '<div class="row-card"><div><div class="title">Auction closed</div><div class="sub">Final rosters are available on the Teams page.</div></div><a class="pill ok" href="teams.html" style="text-decoration:none">Teams</a></div>';
+    return;
+  }
   const cat = $('poolCatFilter').value;
   const q = $('poolSearch').value.toLowerCase();
   const rows = D.pool.filter(p => poolStatus(p.player) === 'available')
